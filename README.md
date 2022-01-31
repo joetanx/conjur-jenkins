@@ -47,3 +47,28 @@ or
 ```console
 cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
+# 4. Conjur policies for Jenkins JWT
+- Ref: https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm
+- `authn-jwt.yaml` - Configures the JWT authenticator
+  - defines the authenticator webservice at `authn-jwt/jenkins`
+  - mandatory authentication variables:
+    - `provider-uri` - OIDC Provider URI. For applications that uses JWT providers that supports ODIC. Not used in this demo.
+    - `jwks-uri` - JSON Web Key Set (JWKS) URI
+  - defines the options authentication variables:
+    - `token-app-property` - The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `jenkins_name` as identity. This variable is always used together with `identity-path`. 
+    - `identity-path` - The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jet-hosts.yaml are created under `jwt-apps/jenkins`, so the `identity-path` will be `jwt-apps/jenkins`.
+    - `issuer` - URI of the JWT issuer. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`. This is included in `iss` claim in the JWT token claims.
+    - `enforced-claims` - List of claims that are enforced (meaning must be included in the JWT token claims). Not used in this demo.
+    - `claim-aliases` - Map claims to aliases. Not used in this demo.
+    - `audience` - JWT audience configured in the Conjur Secrets Plugin under Jenkins. This is configured as the host name of my Jenkins host `jenkins.vx` in this demo.
+  - defines `consumers` group - applications that are authorized to authenticate using this JWT authenticator are added to this group
+  - defines `operators` group - users who are authorized to check the status of this JWT authenticator are added to this group
+- `authn-jwt-hosts.yaml`
+  - `jwt-apps/jenkins` - policy name, this is also the `identity-path` of the app IDs
+  - applications `AWS-Access-Key-Demo` and  are configured
+    - the `id` of the `host` corresponds to the `token-app-property`
+    - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
+    - the host layer is granted as a member of the `consumer` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
+- `app-vars.yaml`
+  - targets `world_db` and `aws_api` are defined with the respective secret variables
+  - applications `MySQL-Demo`is granted access to `world_db` secrets, and applications `AWS-Access-Key-Demo` is granted access to `aws_api` secrets
