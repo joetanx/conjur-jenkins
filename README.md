@@ -123,12 +123,12 @@ yum -y install https://archives.jenkins-ci.org/redhat-stable/jenkins-2.319.2-1.1
 - Download and import SSL certificate for Jenkins
 - You should be using your own certificate in your own lab
 ```console
-curl -L -o conjur.vx.pfx https://github.com/joetanx/conjur-jenkins/raw/main/conjur.vx.pfx
-keytool -importkeystore -srckeystore conjur.vx.pfx -destkeystore /usr/lib/jenkins/.keystore -deststoretype pkcs12
+curl -L -o jenkins.vx.pfx https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pfx
+keytool -importkeystore -srckeystore jenkins.vx.pfx -destkeystore /usr/lib/jenkins/.keystore -deststoretype pkcs12
 ```
 - Clean-up
 ```console
-rm -f conjur.vx.pfx
+rm -f jenkins.vx.pfx
 ```
 - Edit Jenkins configuration file to use HTTPS
 ```console
