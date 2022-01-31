@@ -1,0 +1,58 @@
+- !policy
+  id: jwt-apps/jenkins
+  body:
+    - !layer
+
+    - &hosts
+      - !host
+        id: AWS-Access-Key-Demo
+        annotations:
+          authn-jwt/jenkins/jenkins_pronoun: Project
+          authn-jwt/jenkins/identity: AWS-Access-Key-Demo
+      - !host
+        id: MySQL-Demo
+        annotations:
+          authn-jwt/jenkins/jenkins_pronoun: Project
+          authn-jwt/jenkins/identity: MySQL-Demo
+
+    - !grant 
+        role: !layer
+        members: *hosts
+
+- !grant
+    role: !group conjur/authn-jwt/jenkins/consumers
+    member: !layer jwt-apps/jenkins
+
+- !policy
+  id: world_db
+  body:
+  - &world_db-variables
+    - !variable username
+    - !variable password
+  - !group consumers
+  - !permit
+    role: !group consumers
+    privilege: [ read, execute ]
+    resources: *world_db-variables
+
+- !grant
+  role: !group world_db/consumers
+  members:
+  - !host jwt-apps/jenkins/MySQL-Demo
+
+- !policy
+  id: aws_portal
+  body:
+  - &aws_portal-variables
+    - !variable awsakid
+    - !variable awssak
+  - !group consumers
+  - !permit
+    role: !group consumers
+    privilege: [ read, execute ]
+    resources: *aws_portal-variables
+
+- !grant
+  role: !group aws_portal/consumers
+  members:
+  - !host jwt-apps/jenkins/AWS-Access-Key-Demo
