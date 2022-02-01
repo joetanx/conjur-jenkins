@@ -175,11 +175,26 @@ rm -rf *.yaml central.pem aws awscliv2.zip
 - Select `Build Now` → Wait for build → Verify `Console Output`
 ![image](images/MySQL-Demo-8.png)
 ## 5.3 Configure AWS-Access-Key-Demo project
+- Select `New Item` → Enter `AWS-Access-Key-Demo` as name → Select`Freestyle project`
 ![image](images/AWS-Access-Key-Demo-1.png)
+- Scroll to `Conjur Appliance` → Click `Refresh Credential Store`
 ![image](images/AWS-Access-Key-Demo-2.png)
+- Save and exit the project → Select the project again → Select `Credentials`
+- The credentials that the project is authorized to access were populated automatically from the `Refresh Credential Store` action earlier
 ![image](images/AWS-Access-Key-Demo-3.png)
+- Configure the project → Select `Use secret text(s) or files(s)` → Add Bindings → Select `Conjur Secret Credentials`
 ![image](images/AWS-Access-Key-Demo-4.png)
+- Enter the following bindings:
+  - AWS_ACCESS_KEY_ID: aws_api/awsakid
+  - AWS_SECRET_ACCESS_KEY: aws_api/awssak
 ![image](images/AWS-Access-Key-Demo-5.png)
+- Scroll to `Build` → Select `Execute shell`
 ![image](images/AWS-Access-Key-Demo-6.png)
+- Enter the following:
+```console
+export AWS_DEFAULT_REGION=ap-southeast-1
+/usr/local/bin/aws iam list-users
+```
 ![image](images/AWS-Access-Key-Demo-7.png)
+- Select `Build Now` → Wait for build → Verify `Console Output`
 ![image](images/AWS-Access-Key-Demo-8.png)
