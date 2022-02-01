@@ -22,3 +22,13 @@
 - !grant
     role: !group conjur/authn-jwt/jenkins/consumers
     member: !layer jwt-apps/jenkins
+
+- !grant
+  role: !group world_db/consumers
+  members:
+  - !host jwt-apps/jenkins/MySQL-Demo
+
+- !grant
+  role: !group aws_api/consumers
+  members:
+  - !host jwt-apps/jenkins/AWS-Access-Key-Demo
