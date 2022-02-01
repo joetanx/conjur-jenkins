@@ -55,7 +55,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
   - mandatory authentication variables:
     - `provider-uri` - OIDC Provider URI. For applications that uses JWT providers that supports ODIC. Not used in this demo.
     - `jwks-uri` - JSON Web Key Set (JWKS) URI
-  - defines the options authentication variables:
+  - optional authentication variables:
     - `token-app-property` - The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `jenkins_name` as identity. This variable is always used together with `identity-path`. 
     - `identity-path` - The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jet-hosts.yaml are created under `jwt-apps/jenkins`, so the `identity-path` will be `jwt-apps/jenkins`.
     - `issuer` - URI of the JWT issuer. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`. This is included in `iss` claim in the JWT token claims.
