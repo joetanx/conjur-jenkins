@@ -106,8 +106,27 @@ podman cp central.pem conjur:/etc/ssl/certs/central.pem
 podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
 podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/**a3280000.0**
 ```
+- Populate the variables
+```console
+conjur variable set -i world_db/username -v cityapp
+conjur variable set -i world_db/password -v Cyberark1
+conjur variable set -i aws_api/awsakid -v <AWS_ACCESS_KEY_ID>
+conjur variable set -i aws_api/awssak -v <AWS_SECRET_ACCESS_KEY>
+conjur variable set -i conjur/authn-jwt/jenkins/jwks-uri -v https://jenkins.vx:8443/jwtauth/conjur-jwk-set
+conjur variable set -i conjur/authn-jwt/jenkins/token-app-property -v identity
+conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v jwt-apps/jenkins
+conjur variable set -i conjur/authn-jwt/jenkins/issuer -v https://jenkins.vx:8443
+conjur variable set -i conjur/authn-jwt/jenkins/audience -v jenkins.vx
+```
+- We will use the AWS CLI in Jenkins project to demonstrate the AWS API calls
+- Setup AWS CLI
+```console
+yum -y install unzip
+curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+unzip awscliv2.zip
+./aws/install
+```
 - Clean-up
 ```console
-rm -f *.yaml
-rm -f central.pem
+rm -rf *.yaml central.pem aws awscliv2.zip
 ```
