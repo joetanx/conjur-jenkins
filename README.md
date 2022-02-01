@@ -91,6 +91,11 @@ conjur policy load -b root -f authn-jwt.yaml
 conjur policy load -b root -f authn-jwt-hosts.yaml
 conjur policy load -b root -f app-vars.yaml
 ```
+- Enable the JWT Authenticator
+```console
+podman exec conjur sed -i -e '$aCONJUR_AUTHENTICATORS="authn,authn-jwt/jenkins"' /opt/conjur/etc/conjur.conf
+podman exec conjur sv restart conjur
+```
 > If you are using a self-signed or custom certificate chain in your jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
 ```console
 USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyberark:webservice:conjur/authn-jwt/jenkins:
