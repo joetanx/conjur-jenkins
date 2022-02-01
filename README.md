@@ -48,6 +48,7 @@ or
 cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
 # 4. Conjur policies for Jenkins JWT
+## Details of Conjur policies used in this demo
 - Ref: https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm
 - `authn-jwt.yaml` - Configures the JWT authenticator
   - defines the authenticator webservice at `authn-jwt/jenkins`
@@ -72,3 +73,38 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 - `app-vars.yaml`
   - targets `world_db` and `aws_api` are defined with the respective secret variables
   - applications `MySQL-Demo`is granted access to `world_db` secrets, and applications `AWS-Access-Key-Demo` is granted access to `aws_api` secrets
+## Load the Conjur policies and prepare Conjur for Jenkins JWT
+- Download the Conjur policies
+```console
+curl -L -o authn-jwt.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt.yaml
+curl -L -o authn-jwt-hosts.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt-hosts.yaml
+curl -L -o app-vars.yaml https://github.com/joetanx/conjur-jenkins/raw/main/app-vars.yaml
+```
+- Login to Conjur
+```console
+conjur init -u https://conjur.vx
+conjur login -i admin -p CyberArk123!
+```
+- Load the policies to Conjur
+```console
+conjur policy load -b root -f authn-jwt.yaml
+conjur policy load -b root -f authn-jwt-hosts.yaml
+conjur policy load -b root -f app-vars.yaml
+```
+- Clean-up
+```console
+rm -f *.yaml
+```
+> If you are using a self-signed or custom certificate chain in your jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
+```console
+USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyberark:webservice:conjur/authn-jwt/jenkins: **CONJ00087E** Failed to fetch JWKS from 'https://jenkins.vx:8443/jwtauth/conjur-jwk-set'. Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: certificate verify failed (self signed certificate in certificate chain)>'
+```
+- Import your Jenkins certificate or the root CA certificate to Conjur appliance
+- **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a linke **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to /etc/ssl/certs/**<your-ca-hash>.0**
+- This procedure is documented in: https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed
+```console
+curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/central.pem
+podman cp central.pem conjur:/etc/ssl/certs/central.pem
+podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
+podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/**a3280000.0**
+```
