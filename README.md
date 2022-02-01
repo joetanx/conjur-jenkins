@@ -69,17 +69,13 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
   - applications `AWS-Access-Key-Demo` and `MySQL-Demo` are configured
     - the `id` of the `host` corresponds to the `token-app-property`
     - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
-    - the host layer is granted as a member of the `consumer` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
-- `app-vars.yaml`
-  - targets `world_db` and `aws_api` are defined with the respective secret variables
-  - `MySQL-Demo`is granted access to `world_db` secrets
-  - `AWS-Access-Key-Demo` is granted access to `aws_api` secrets
+  - the host layer is granted as a member of the `consumer` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
+  - `MySQL-Demo` and `AWS-Access-Key-Demo` are granted access to secrets in `world_db` and `aws_api` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
 ## Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Download the Conjur policies
 ```console
 curl -L -o authn-jwt.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt.yaml
 curl -L -o authn-jwt-hosts.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt-hosts.yaml
-curl -L -o app-vars.yaml https://github.com/joetanx/conjur-jenkins/raw/main/app-vars.yaml
 ```
 - Login to Conjur
 ```console
@@ -90,7 +86,6 @@ conjur login -i admin -p CyberArk123!
 ```console
 conjur policy load -b root -f authn-jwt.yaml
 conjur policy load -b root -f authn-jwt-hosts.yaml
-conjur policy load -b root -f app-vars.yaml
 ```
 - Enable the JWT Authenticator
 ```console
@@ -113,11 +108,8 @@ podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
 podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/a3280000.0
 ```
 - Populate the variables
+- Assumes that the secret variables in `world_db` and `aws_api` are already populated in step 2 (Setup Conjur master)
 ```console
-conjur variable set -i world_db/username -v cityapp
-conjur variable set -i world_db/password -v Cyberark1
-conjur variable set -i aws_api/awsakid -v <AWS_ACCESS_KEY_ID>
-conjur variable set -i aws_api/awssak -v <AWS_SECRET_ACCESS_KEY>
 conjur variable set -i conjur/authn-jwt/jenkins/jwks-uri -v https://jenkins.vx:8443/jwtauth/conjur-jwk-set
 conjur variable set -i conjur/authn-jwt/jenkins/token-app-property -v identity
 conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v jwt-apps/jenkins
