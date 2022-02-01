@@ -104,7 +104,7 @@ Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: c
 curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/central.pem
 podman cp central.pem conjur:/etc/ssl/certs/central.pem
 podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
-podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/**a3280000.0**
+podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/a3280000.0
 ```
 - Populate the variables
 ```console
