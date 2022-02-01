@@ -72,7 +72,8 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
     - the host layer is granted as a member of the `consumer` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
 - `app-vars.yaml`
   - targets `world_db` and `aws_api` are defined with the respective secret variables
-  - applications `MySQL-Demo`is granted access to `world_db` secrets, and applications `AWS-Access-Key-Demo` is granted access to `aws_api` secrets
+  - `MySQL-Demo`is granted access to `world_db` secrets
+  - `AWS-Access-Key-Demo` is granted access to `aws_api` secrets
 ## Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Download the Conjur policies
 ```console
