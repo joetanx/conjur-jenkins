@@ -66,7 +66,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
   - defines `operators` group - users who are authorized to check the status of this JWT authenticator are added to this group
 - `authn-jwt-hosts.yaml`
   - `jwt-apps/jenkins` - policy name, this is also the `identity-path` of the app IDs
-  - applications `AWS-Access-Key-Demo` and  are configured
+  - applications `AWS-Access-Key-Demo` and `MySQL-Demo` are configured
     - the `id` of the `host` corresponds to the `token-app-property`
     - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
     - the host layer is granted as a member of the `consumer` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
