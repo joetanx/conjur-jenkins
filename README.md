@@ -91,10 +91,6 @@ conjur policy load -b root -f authn-jwt.yaml
 conjur policy load -b root -f authn-jwt-hosts.yaml
 conjur policy load -b root -f app-vars.yaml
 ```
-- Clean-up
-```console
-rm -f *.yaml
-```
 > If you are using a self-signed or custom certificate chain in your jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
 ```console
 USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyberark:webservice:conjur/authn-jwt/jenkins:
@@ -109,4 +105,9 @@ curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/centra
 podman cp central.pem conjur:/etc/ssl/certs/central.pem
 podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
 podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/**a3280000.0**
+```
+- Clean-up
+```console
+rm -f *.yaml
+rm -f central.pem
 ```
