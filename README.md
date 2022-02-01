@@ -103,7 +103,7 @@ USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyb
 Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: certificate verify failed (self signed certificate in certificate chain)>'
 ```
 - Import your Jenkins certificate or the root CA certificate to Conjur appliance
-- **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a linke **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to /etc/ssl/certs/**<your-ca-hash>.0**
+- **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a link **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to `/etc/ssl/certs/<your-ca-hash>.0`
 - This procedure is documented in: https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed
 ```console
 curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/central.pem
@@ -135,3 +135,51 @@ unzip awscliv2.zip
 ```console
 rm -rf *.yaml central.pem aws awscliv2.zip
 ```
+# 5. Configure Jenkins
+## 5.1 Configure Conjur Secrets plugin
+- Select `Manage Jenkins` → `Manage Plugins` → `Available`
+- Search for `conjur`
+![image](images/Plugin-1.png)
+- Check the plugin and select `Install without restart`
+![image](images/Plugin-2.png)
+- Select `Manage Jenkins` → `Configure System`, scroll to `Conjur Appliance` and configure the following:
+  - Account: `cyberark`
+  - Appliance URL: `https://conjur.vx`
+  - Enable JWT Key Set endpoint?: `✓`
+  - Auth WebService ID: `jenkins`
+  - JWT Audience: `jenkins.vx`
+  - Enable Context Aware Credential Stores?: `✓`
+- Save
+![image](images/Plugin-3.png)
+## 5.2 Configure MySQL-Demo project
+- Select `New Item` → Enter `MySQL-Demo` as name → Select`Freestyle project`
+![image](images/MySQL-Demo-1.png)
+- Scroll to `Conjur Appliance` → Click `Refresh Credential Store`
+![image](images/MySQL-Demo-2.png)
+- Save and exit the project → Select the project again → Select `Credentials`
+- The credentials that the project is authorized to access were populated automatically from the `Refresh Credential Store` action earlier
+![image](images/MySQL-Demo-3.png)
+- Configure the project → Select `Use secret text(s) or files(s)` → Add Bindings → Select `Conjur Secret Credentials`
+![image](images/MySQL-Demo-4.png)
+- Enter the following bindings:
+  - MYSQLUSER: world_db/username
+  - MYSQLPASSWORD: world_db/password
+![image](images/MySQL-Demo-5.png)
+- Scroll to `Build` → Select `Execute shell`
+![image](images/MySQL-Demo-6.png)
+- Enter the following:
+```console
+/usr/bin/mysql --host=mysql.vx --user=$MYSQLUSER --password=$MYSQLPASSWORD -e "SHOW DATABASES;"
+```
+![image](images/MySQL-Demo-7.png)
+- Select `Build Now` → Wait for build → Verify `Console Output`
+![image](images/MySQL-Demo-8.png)
+## 5.3 Configure AWS-Access-Key-Demo project
+![image](images/AWS-Access-Key-Demo-1.png)
+![image](images/AWS-Access-Key-Demo-2.png)
+![image](images/AWS-Access-Key-Demo-3.png)
+![image](images/AWS-Access-Key-Demo-4.png)
+![image](images/AWS-Access-Key-Demo-5.png)
+![image](images/AWS-Access-Key-Demo-6.png)
+![image](images/AWS-Access-Key-Demo-7.png)
+![image](images/AWS-Access-Key-Demo-8.png)
