@@ -69,7 +69,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
   - applications `AWS-Access-Key-Demo` and `MySQL-Demo` are configured
     - the `id` of the `host` corresponds to the `token-app-property`
     - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
-  - the host layer is granted as a member of the `consumer` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
+  - the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
   - `MySQL-Demo` and `AWS-Access-Key-Demo` are granted access to secrets in `world_db` and `aws_api` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
 ## Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Download the Conjur policies
