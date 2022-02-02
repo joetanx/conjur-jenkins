@@ -14,11 +14,11 @@
           authn-jwt/jenkins/jenkins_pronoun: Project
           authn-jwt/jenkins/identity: MySQL-Demo
     - !grant 
-        role: !layer
-        members: *hosts
+      role: !layer
+      members: *hosts
 - !grant
-    role: !group conjur/authn-jwt/jenkins/consumers
-    member: !layer jwt-apps/jenkins
+  role: !group conjur/authn-jwt/jenkins/consumers
+  member: !layer jwt-apps/jenkins
 - !grant
   role: !group world_db/consumers
   members:
