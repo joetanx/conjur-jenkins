@@ -2,7 +2,7 @@
 > 
 > Work in Progress
 # 1. Setup MySQL database
-- Setup MySQL database according to this guide: https://github.com/joetanx/conjur-mysql
+- Setup MySQL database according to this guide: https://github.com/joetanx/mysql-world_db
 # 2. Setup Conjur master
 - Setup Conjur master according to this guide: https://github.com/joetanx/conjur-master
 # 3. Setup Jenkins
