@@ -2,7 +2,6 @@
   id: jwt-apps/jenkins
   body:
     - !layer
-
     - &hosts
       - !host
         id: AWS-Access-Key-Demo
@@ -14,20 +13,16 @@
         annotations:
           authn-jwt/jenkins/jenkins_pronoun: Project
           authn-jwt/jenkins/identity: MySQL-Demo
-
     - !grant 
         role: !layer
         members: *hosts
-
 - !grant
     role: !group conjur/authn-jwt/jenkins/consumers
     member: !layer jwt-apps/jenkins
-
 - !grant
   role: !group world_db/consumers
   members:
   - !host jwt-apps/jenkins/MySQL-Demo
-
 - !grant
   role: !group aws_api/consumers
   members:
