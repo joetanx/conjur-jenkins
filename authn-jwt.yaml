@@ -2,57 +2,39 @@
     id: conjur/authn-jwt/jenkins
     body:
     - !webservice
-
-
-    #Mandatory variable: The JWT provider URI
-    #Uncomment either 'provider-uri' OR 'jwks-uri'
-
-    #- !variable
-    #    id: provider-uri
-
+    # Mandatory variable: The JWT provider URI
+    # Uncomment either 'provider-uri' OR 'jwks-uri'
+    # - !variable
+    #   id: provider-uri
     - !variable
       id: jwks-uri
-
-    #Optional variables
-    #Uncomment one or all of the following optional variables.
-    #Note: If you uncomment 'token-app-property' you must also uncomment 'identity-path',
-    #and vice versa;
-
+    # Optional variables
+    # Uncomment one or all of the following optional variables.
+    # Note: If you uncomment 'token-app-property' you must also uncomment 'identity-path', and vice versa;
     - !variable
       id: token-app-property
-
     - !variable
       id: identity-path
-
     - !variable
       id: issuer
-
-    #- !variable
-    #    id: enforced-claims
-
-    #- !variable
-    #    id: claim-aliases
-
+    # - !variable
+    #   id: enforced-claims
+    # - !variable
+    #   id: claim-aliases
     - !variable
       id: audience
-
-
-    #Group of applications that can authenticate using this JWT Authenticator
+    # Group of applications that can authenticate using this JWT Authenticator
     - !group consumers
-
     - !permit
-        role: !group consumers
-        privilege: [ read, authenticate ]
-        resource: !webservice
-
+      role: !group consumers
+      privilege: [ read, authenticate ]
+      resource: !webservice
     - !webservice
-        id: status
-
-    #Group of users who can check the status of the JWT Authenticator
+      id: status
+    # Group of users who can check the status of the JWT Authenticator
     - !group
-        id: operators
-
+      id: operators
     - !permit
-        role: !group operators
-        privilege: [ read ]
-        resource: !webservice status
+      role: !group operators
+      privilege: [ read ]
+      resource: !webservice status
