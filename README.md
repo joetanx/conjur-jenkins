@@ -73,7 +73,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
     - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
   - the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
   - `MySQL-Demo` and `AWS-Access-Key-Demo` are granted access to secrets in `world_db` and `aws_api` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
-> The `authn-jwt-hosts.yaml` builds on top of the `app-vars.yaml` in https://github.com/joetanx/conjur-master. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
+> `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in https://github.com/joetanx/conjur-master. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
 ## Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Download the Conjur policies
 ```console
