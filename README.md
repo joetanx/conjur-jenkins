@@ -5,6 +5,7 @@
 ### Servers
 - conjur.vx: Conjur master
 - jenkins.vx: Jenkins node
+- mysql.vx: MySQL server
 
 # 1. Setup MySQL database
 - Setup MySQL database according to this guide: https://github.com/joetanx/mysql-world_db
