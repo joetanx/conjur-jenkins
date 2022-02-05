@@ -6,7 +6,7 @@
 | Hostname  | Role |
 | --- | --- |
 | conjur.vx  | Conjur master  |
-| jenkins.vx  | MySQL server  |
+| jenkins.vx  | Jenkins node  |
 | mysql.vx  | MySQL server  |
 
 # 1. Setup MySQL database
