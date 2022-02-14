@@ -1,8 +1,8 @@
 # Introduction
-This guide demonstrates the integration between Jenkins and Conjur using the JWT authenticator.
-The JWT authenticator relies on the trust between Conjur and Jenkins via the JSON Web Key Set (JWKS).
-Each project on Jenkins retrieving credentials will have its JWT signed and verified via the JWKS.
-This mitigates the "secret-zero" problem and enable each project on Jenkins to be uniquely identified.
+- This guide demonstrates the integration between Jenkins and Conjur using the JWT authenticator.
+- The JWT authenticator relies on the trust between Conjur and Jenkins via the JSON Web Key Set (JWKS).
+- Each project on Jenkins retrieving credentials will have its JWT signed and verified via the JWKS.
+- This mitigates the "secret-zero" problem and enable each project on Jenkins to be uniquely identified.
 ### Software Versions
 - RHEL 8.5
 - Jenkins 2.319
