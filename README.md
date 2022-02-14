@@ -3,6 +3,9 @@
 - The JWT authenticator relies on the trust between Conjur and Jenkins via the JSON Web Key Set (JWKS).
 - Each project on Jenkins retrieving credentials will have its JWT signed and verified via the JWKS.
 - This mitigates the "secret-zero" problem and enable each project on Jenkins to be uniquely identified.
+- The demonstration will run 2 Jenkins project:
+  - MySQL-Demo: Run a sql command to show databases using the credentials retrieved from Conjur
+  - AWS-Access-Key-Demo: Run an AWS CLI command to list users using the credentials retrieved from Conjur
 ### Software Versions
 - RHEL 8.5
 - Jenkins 2.319
