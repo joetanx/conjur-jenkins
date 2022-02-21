@@ -72,21 +72,21 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
     - `provider-uri` - OIDC Provider URI. For applications that uses JWT providers that supports ODIC. Not used in this demo.
     - `jwks-uri` - JSON Web Key Set (JWKS) URI. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`.
   - optional authentication variables:
-    - `token-app-property` - The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `jenkins_name` as identity. This variable is always used together with `identity-path`. 
+    - `token-app-property` - The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `aud` concatenated with `jenkins_name` as identity. This variable is always used together with `identity-path`. 
     - `identity-path` - The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jwt-hosts.yaml` are created under `jwt-apps/jenkins`, so the `identity-path` is `jwt-apps/jenkins`.
     - `issuer` - URI of the JWT issuer. This is your Jenkins URL. This is included in `iss` claim in the JWT token claims.
     - `enforced-claims` - List of claims that are enforced (i.e. must be present in the JWT token claims). Not used in this demo.
     - `claim-aliases` - Map claims to aliases. Not used in this demo.
-    - `audience` - JWT audience configured in the Conjur Secrets Plugin under Jenkins. This is configured as the host name of my Jenkins host `jenkins.vx` in this demo.
+    - `audience` - JWT audience configured in the Conjur Secrets Plugin under Jenkins. This is configured as `vxlab` in this demo.
   - defines `consumers` group - applications that are authorized to authenticate using this JWT authenticator are added to this group
   - defines `operators` group - users who are authorized to check the status of this JWT authenticator are added to this group
 - `authn-jwt-hosts.yaml`
   - `jwt-apps/jenkins` - policy name, this is also the `identity-path` of the app IDs
-  - applications `AWS-Access-Key-Demo` and `MySQL-Demo` are configured
+  - applications `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are configured
     - the `id` of the `host` corresponds to the `token-app-property`
     - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
   - the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
-  - `MySQL-Demo` and `AWS-Access-Key-Demo` are granted access to secrets in `world_db` and `aws_api` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
+  - `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are granted access to secrets in `aws_api` and `world_db` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
 > `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in https://github.com/joetanx/conjur-master. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
 ## Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Download the Conjur policies
@@ -157,7 +157,7 @@ rm -rf *.yaml central.pem aws awscliv2.zip
   - Appliance URL: `https://conjur.vx`
   - Enable JWT Key Set endpoint?: `✓`
   - Auth WebService ID: `jenkins`
-  - JWT Audience: `jenkins.vx`
+  - JWT Audience: `vxlab`
   - Enable Context Aware Credential Stores?: `✓`
 - Save
 ![image](images/Plugin-3.png)
