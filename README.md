@@ -6,6 +6,55 @@
 - The demonstration will run 2 Jenkins project:
   - MySQL-Demo: Run a sql command to show databases using the credentials retrieved from Conjur
   - AWS-Access-Key-Demo: Run an AWS CLI command to list users using the credentials retrieved from Conjur
+## How does Jenkins integration with Conjur using JWT work?
+![image](images/Architecture.png)
+
+① The Jenkins project requests for a JWT from the Conjur Secrets Plugin
+
+② Conjur Secrets Plugin returns a JWT for the Jenkins project with the relevant details; this JWT is signed with the private key of the JWKS
+
+- Example JWT
+```console
+{
+    "sub": "admin",
+    "jenkins_full_name": "AWS-Access-Key-Demo",
+    "iss": "https://jenkins.vx:8443",
+    "aud": "vxlab",
+    "jenkins_name": "AWS-Access-Key-Demo",
+    "nbf": 1645424355,
+    "identity": "vxlab-AWS-Access-Key-Demo",
+    "name": "admin",
+    "jenkins_task_noun": "Build",
+    "exp": 1645424505,
+    "iat": 1645424385,
+    "jenkins_pronoun": "Project",
+    "jti": "efb33ded653d412681aaf241326702b0",
+    "jenkins_job_buildir": "/var/lib/jenkins/jobs/AWS-Access-Key-Demo/builds"
+}
+```
+
+③ The Jenkins project sends an authentication request to Conjur using the JWT authenticator web service
+
+- The Jenkins project finds the URI for JWT authenticator using `<Conjur-Appliance-URL>/authn-jwt/<service-id>`
+- The URI configure in this demo is `https://conjur.vx/authn-jwt/jenkins`
+
+④ Conjur fetches the public key from the JWKS of the Conjur Secrets Plugin
+
+- When enabled, the Conjur Secrets Plugin creates a JWT Key Set endpoint at `<Jenkins-URL>/jwtauth/conjur-jwk-set
+- This JWKS URI is set in the `jwks-uri` variable of the JWT authenticator in Conjur so that Conjur knows where to find the JWKS
+
+⑤ Conjur verifies that the token is legit with the JWKS public key and authenticates application identity
+
+- Conjur identifies the application identity via the `token-app-property` variable of the JWT authenticator
+- The `token-app-property` variable is set in Conjur as the `identity` claim in this demo
+- The `identity` claim in Jenkins is configured as `<aud>-<jenkins-name>` in this demo
+- Conjur further verifies the applications details as configured in the `annotations` listed in the `host` (application identity) declaration
+- In this demo, annotations `jenkins_pronoun` and `jenkins_full_name` are defined for the application identity - the JWT claims from Jenkins needs to tally with the declaration for application authentication to be successful
+
+⑥ Conjur returns an access token to the Jenkins project if authentication is successful
+
+⑦ The Jenkins project will then use the access token to retrieve the secrets
+
 ### Software Versions
 - RHEL 8.5
 - Jenkins 2.319
