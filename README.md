@@ -68,6 +68,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 - Ref: https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm
 - `authn-jwt.yaml` - Configures the JWT authenticator
   - defines the authenticator webservice at `authn-jwt/jenkins`
+    - the format of the authenticator webservice is `authn-jwt/<service-id>`, the `<service-id>` used in this demo is `jenkins`, this will be entered into the Conjur Secrets Plugin configuration for `Auth WebService ID` below.
   - mandatory authentication variables:
     - `provider-uri` - OIDC Provider URI. For applications that uses JWT providers that supports ODIC. Not used in this demo.
     - `jwks-uri` - JSON Web Key Set (JWKS) URI. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`.
