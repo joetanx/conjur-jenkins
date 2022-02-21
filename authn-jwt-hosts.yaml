@@ -4,15 +4,15 @@
   - !layer
   - &hosts
     - !host
-      id: AWS-Access-Key-Demo
+      id: vxlab-AWS-Access-Key-Demo
       annotations:
         authn-jwt/jenkins/jenkins_pronoun: Project
-        authn-jwt/jenkins/identity: AWS-Access-Key-Demo
+        authn-jwt/jenkins/jenkins_full_name: AWS-Access-Key-Demo
     - !host
-      id: MySQL-Demo
+      id: vxlab-MySQL-Demo
       annotations:
         authn-jwt/jenkins/jenkins_pronoun: Project
-        authn-jwt/jenkins/identity: MySQL-Demo
+        authn-jwt/jenkins/jenkins_full_name: MySQL-Demo
   - !grant 
     role: !layer
     members: *hosts
