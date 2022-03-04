@@ -6,13 +6,15 @@
     - !host
       id: vxlab-AWS-Access-Key-Demo
       annotations:
-        authn-jwt/jenkins/jenkins_pronoun: Project
         authn-jwt/jenkins/jenkins_full_name: AWS-Access-Key-Demo
+        authn-jwt/jenkins/jenkins_task_noun: Build
+        authn-jwt/jenkins/jenkins_pronoun: Pipeline
     - !host
       id: vxlab-MySQL-Demo
       annotations:
-        authn-jwt/jenkins/jenkins_pronoun: Project
         authn-jwt/jenkins/jenkins_full_name: MySQL-Demo
+        authn-jwt/jenkins/jenkins_task_noun: Build
+        authn-jwt/jenkins/jenkins_pronoun: Pipeline
   - !grant 
     role: !layer
     members: *hosts
@@ -25,3 +27,4 @@
 - !grant
   role: !group world_db/consumers
   member: !host jwt-apps/jenkins/vxlab-MySQL-Demo
+  
