@@ -21,16 +21,17 @@
     "iss": "https://jenkins.vx:8443",
     "aud": "vxlab",
     "jenkins_name": "AWS-Access-Key-Demo",
-    "nbf": 1645424355,
+    "nbf": 1646394039,
     "identity": "vxlab-AWS-Access-Key-Demo",
     "name": "admin",
     "jenkins_task_noun": "Build",
-    "exp": 1645424505,
-    "iat": 1645424385,
-    "jenkins_pronoun": "Project",
-    "jti": "efb33ded653d412681aaf241326702b0",
+    "exp": 1646394189,
+    "iat": 1646394069,
+    "jenkins_pronoun": "Pipeline",
+    "jti": "88411dd3f2a4433694f6a707b3b99407",
     "jenkins_job_buildir": "/var/lib/jenkins/jobs/AWS-Access-Key-Demo/builds"
 }
+
 ```
 
 ③ The Jenkins project sends an authentication request to Conjur using the JWT authenticator web service
@@ -181,7 +182,7 @@ conjur variable set -i conjur/authn-jwt/jenkins/jwks-uri -v https://jenkins.vx:8
 conjur variable set -i conjur/authn-jwt/jenkins/token-app-property -v identity
 conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v jwt-apps/jenkins
 conjur variable set -i conjur/authn-jwt/jenkins/issuer -v https://jenkins.vx:8443
-conjur variable set -i conjur/authn-jwt/jenkins/audience -v jenkins.vx
+conjur variable set -i conjur/authn-jwt/jenkins/audience -v vxlab
 ```
 - We will use the AWS CLI in Jenkins project to demonstrate the AWS API calls
 - Setup AWS CLI
@@ -209,52 +210,63 @@ rm -rf *.yaml central.pem aws awscliv2.zip
   - Auth WebService ID: `jenkins`
   - JWT Audience: `vxlab`
   - Enable Context Aware Credential Stores?: `✓`
+  - Identity Format Fields: `aud,jenkins_name`
 - Save
 ![image](images/Plugin-3.png)
 ## 5.2 Configure MySQL-Demo project
-- Select `New Item` → Enter `MySQL-Demo` as name → Select`Freestyle project`
+- Select `New Item` → Enter `MySQL-Demo` as name → Select `Pipeline`
 ![image](images/MySQL-Demo-1.png)
 - Scroll to `Conjur Appliance` → Click `Refresh Credential Store`
 ![image](images/MySQL-Demo-2.png)
+- For the `Pipeline script`, we will be using a simple `SHOW DATABASES` command to show that jenkins is able to login to the MySQL database with secrets fetched from conjur
+- The secrets retrieval is done using `withCredentials` pipeline step (you can use the `Pipeline Syntax` function in Jenkins to help generate the syntax)
+```console
+pipeline {
+    agent any
+    stages {
+        stage('getDatabases') {
+            steps {
+                withCredentials([conjurSecretCredential(credentialsId: 'world_db-username', variable: 'MYSQLUSER'), conjurSecretCredential(credentialsId: 'world_db-password', variable: 'MYSQLPASSWORD')]) {
+                    sh '/usr/bin/mysql --host=mysql.vx --user=$MYSQLUSER --password=$MYSQLPASSWORD -e "SHOW DATABASES;"'
+                }
+            }
+        }
+    }
+}
+```
+![image](images/MySQL-Demo-3.png)
 - Save and exit the project → Select the project again → Select `Credentials`
 - The credentials that the project is authorized to access were populated automatically from the `Refresh Credential Store` action earlier
-![image](images/MySQL-Demo-3.png)
-- Configure the project → Select `Use secret text(s) or files(s)` → Add Bindings → Select `Conjur Secret Credentials`
 ![image](images/MySQL-Demo-4.png)
-- Enter the following bindings:
-  - MYSQLUSER: world_db/username
-  - MYSQLPASSWORD: world_db/password
-![image](images/MySQL-Demo-5.png)
-- Scroll to `Build` → Select `Execute shell`
-![image](images/MySQL-Demo-6.png)
-- Enter the following:
-```console
-/usr/bin/mysql --host=mysql.vx --user=$MYSQLUSER --password=$MYSQLPASSWORD -e "SHOW DATABASES;"
-```
-![image](images/MySQL-Demo-7.png)
 - Select `Build Now` → Wait for build → Verify `Console Output`
-![image](images/MySQL-Demo-8.png)
+![image](images/MySQL-Demo-5.png)
 ## 5.3 Configure AWS-Access-Key-Demo project
-- Select `New Item` → Enter `AWS-Access-Key-Demo` as name → Select`Freestyle project`
+- Select `New Item` → Enter `AWS-Access-Key-Demo` as name → Select `Pipeline`
 ![image](images/AWS-Access-Key-Demo-1.png)
 - Scroll to `Conjur Appliance` → Click `Refresh Credential Store`
 ![image](images/AWS-Access-Key-Demo-2.png)
+- For the `Pipeline script`, we will be using a simple `aws iam list-users` command to show that jenkins is able to use AWS CLI with secrets fetched from conjur
+- The secrets retrieval is done using `withCredentials` pipeline step (you can use the `Pipeline Syntax` function in Jenkins to help generate the syntax)
+```console
+pipeline {
+    agent any
+    environment {
+        AWS_DEFAULT_REGION = 'ap-southeast-1'
+    }
+    stages {
+        stage('awsListUsers') {
+            steps {
+                withCredentials([conjurSecretCredential(credentialsId: 'aws_api-awsakid', variable: 'AWS_ACCESS_KEY_ID'), conjurSecretCredential(credentialsId: 'aws_api-awssak', variable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh '/usr/local/bin/aws iam list-users'
+                }
+            }
+        }
+    }
+}
+```
+![image](images/AWS-Access-Key-Demo-3.png)
 - Save and exit the project → Select the project again → Select `Credentials`
 - The credentials that the project is authorized to access were populated automatically from the `Refresh Credential Store` action earlier
-![image](images/AWS-Access-Key-Demo-3.png)
-- Configure the project → Select `Use secret text(s) or files(s)` → Add Bindings → Select `Conjur Secret Credentials`
 ![image](images/AWS-Access-Key-Demo-4.png)
-- Enter the following bindings:
-  - AWS_ACCESS_KEY_ID: aws_api/awsakid
-  - AWS_SECRET_ACCESS_KEY: aws_api/awssak
-![image](images/AWS-Access-Key-Demo-5.png)
-- Scroll to `Build` → Select `Execute shell`
-![image](images/AWS-Access-Key-Demo-6.png)
-- Enter the following:
-```console
-export AWS_DEFAULT_REGION=ap-southeast-1
-/usr/local/bin/aws iam list-users
-```
-![image](images/AWS-Access-Key-Demo-7.png)
 - Select `Build Now` → Wait for build → Verify `Console Output`
-![image](images/AWS-Access-Key-Demo-8.png)
+![image](images/AWS-Access-Key-Demo-5.png)
