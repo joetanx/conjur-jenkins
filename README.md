@@ -50,7 +50,7 @@
 - The `token-app-property` variable is set in Conjur as the `identity` claim in this demo
 - The `identity` claim in Jenkins is configured as `<aud>-<jenkins-name>` in this demo
 - Conjur further verifies the applications details as configured in the `annotations` listed in the `host` (application identity) declaration
-- In this demo, annotations `jenkins_pronoun` and `jenkins_full_name` are defined for the application identity - the JWT claims from Jenkins needs to tally with the declaration for application authentication to be successful
+- In this demo, annotations `jenkins_full_name`, `jenkins_task_noun` and `jenkins_pronoun` are defined for the application identity - the JWT claims from Jenkins needs to tally with the declaration for application authentication to be successful
 
 ⑥ Conjur returns an access token to the Jenkins project if authentication is successful
 
