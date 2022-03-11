@@ -58,7 +58,7 @@
 
 ### Software Versions
 - RHEL 8.5
-- Jenkins 2.319
+- Jenkins 2.332
 - Conjur 12.4
 ### Servers
 | Hostname  | Role |
@@ -77,7 +77,7 @@
 yum -y install java-devel
 yum -y install https://download-ib01.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/d/daemonize-1.7.8-1.el8.x86_64.rpm
 rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
-yum -y install https://archives.jenkins-ci.org/redhat-stable/jenkins-2.319.3-1.1.noarch.rpm
+yum -y install https://archives.jenkins-ci.org/redhat-stable/jenkins-2.332.1-1.1.noarch.rpm
 ```
 - Download and import SSL certificate for Jenkins
 - You should be using your own certificate in your own lab
