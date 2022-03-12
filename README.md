@@ -1,4 +1,4 @@
-# Integrate Jenkins with Conjur using the JWT authenticator.
+# Integrate Jenkins with Conjur using the JWT authenticator
 ## Introduction
 - This guide demonstrates the integration between Jenkins and Conjur using the JWT authenticator.
 - The JWT authenticator relies on the trust between Conjur and Jenkins via the JSON Web Key Set (JWKS).
