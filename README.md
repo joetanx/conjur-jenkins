@@ -119,6 +119,7 @@ or
 ```console
 cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
+
 # 4. Conjur policies for Jenkins JWT
 ## Details of Conjur policies used in this demo
 - Ref: https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm
@@ -221,6 +222,7 @@ rm -rf *.yaml central.pem aws awscliv2.zip
   - Identity Format Fields: `aud,jenkins_name`
 - Save
 ![image](images/Plugin-3.png)
+
 ## 5.2 Configure MySQL-Demo project
 - Select `New Item` → Enter `MySQL-Demo` as name → Select `Pipeline`
 ![image](images/MySQL-Demo-1.png)
@@ -248,6 +250,7 @@ pipeline {
 ![image](images/MySQL-Demo-4.png)
 - Select `Build Now` → Wait for build → Verify `Console Output`
 ![image](images/MySQL-Demo-5.png)
+
 ## 5.3 Configure AWS-Access-Key-Demo project
 - Select `New Item` → Enter `AWS-Access-Key-Demo` as name → Select `Pipeline`
 ![image](images/AWS-Access-Key-Demo-1.png)
