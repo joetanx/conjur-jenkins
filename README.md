@@ -64,6 +64,7 @@
 - Conjur 12.4
 
 ### Servers
+
 | Hostname  | Role |
 | --- | --- |
 | conjur.vx  | Conjur master  |
