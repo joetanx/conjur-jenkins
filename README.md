@@ -73,10 +73,10 @@
 | mysql.vx  | MySQL server  |
 
 # 1. Setup MySQL database
-- Setup MySQL database according to this guide: https://github.com/joetanx/mysql-world_db
+- Setup MySQL database according to this guide: <https://joetanx.github.io//mysql-world_db>
 
 # 2. Setup Conjur master
-- Setup Conjur master according to this guide: https://github.com/joetanx/conjur-master
+- Setup Conjur master according to this guide: <https://joetanx.github.io/conjur-master>
 
 # 3. Setup Jenkins
 - Install dependencies, import rpm key, install Jenkins
@@ -123,7 +123,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 
 # 4. Conjur policies for Jenkins JWT
 ## Details of Conjur policies used in this demo
-- Ref: https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm
+- Ref: <https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm>
 - `authn-jwt.yaml` - Configures the JWT authenticator
   - defines the authenticator webservice at `authn-jwt/jenkins`
     - the format of the authenticator webservice is `authn-jwt/<service-id>`, the `<service-id>` used in this demo is `jenkins`, this will be entered into the Conjur Secrets Plugin configuration for `Auth WebService ID` below.
@@ -146,7 +146,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
     - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
   - the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
   - `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are granted access to secrets in `aws_api` and `world_db` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
-> `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in https://github.com/joetanx/conjur-master. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
+> `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in <https://joetanx.github.io/conjur-master>. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
 
 ## Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Download the Conjur policies
@@ -177,7 +177,7 @@ Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: c
 ```
 - Import your Jenkins certificate or the root CA certificate to Conjur appliance
 - **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a link **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to `/etc/ssl/certs/<your-ca-hash>.0`
-- This procedure is documented in: https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed
+- This procedure is documented in: <https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed>
 ```console
 curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/central.pem
 podman cp central.pem conjur:/etc/ssl/certs/central.pem
