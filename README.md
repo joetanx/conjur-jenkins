@@ -14,6 +14,7 @@
 ② Conjur Secrets Plugin returns a JWT for the Jenkins project with the relevant details; this JWT is signed with the private key of the JWKS
 
 - Example JWT
+
 ```console
 {
     "sub": "admin",
