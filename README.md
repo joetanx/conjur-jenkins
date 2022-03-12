@@ -6,6 +6,7 @@
 - The demonstration will run 2 Jenkins project:
   - MySQL-Demo: Run a sql command to show databases using the credentials retrieved from Conjur
   - AWS-Access-Key-Demo: Run an AWS CLI command to list users using the credentials retrieved from Conjur
+
 ## How does Jenkins integration with Conjur using JWT work?
 ![image](images/Architecture.png)
 
@@ -61,6 +62,7 @@
 - RHEL 8.5
 - Jenkins 2.332
 - Conjur 12.4
+
 ### Servers
 | Hostname  | Role |
 | --- | --- |
@@ -70,8 +72,10 @@
 
 # 1. Setup MySQL database
 - Setup MySQL database according to this guide: https://github.com/joetanx/mysql-world_db
+
 # 2. Setup Conjur master
 - Setup Conjur master according to this guide: https://github.com/joetanx/conjur-master
+
 # 3. Setup Jenkins
 - Install dependencies, import rpm key, install Jenkins
 ```console
@@ -140,6 +144,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
   - the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
   - `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are granted access to secrets in `aws_api` and `world_db` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
 > `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in https://github.com/joetanx/conjur-master. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
+
 ## Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Download the Conjur policies
 ```console
@@ -197,6 +202,7 @@ unzip awscliv2.zip
 ```console
 rm -rf *.yaml central.pem aws awscliv2.zip
 ```
+
 # 5. Configure Jenkins
 ## 5.1 Configure Conjur Secrets plugin
 - Select `Manage Jenkins` → `Manage Plugins` → `Available`
