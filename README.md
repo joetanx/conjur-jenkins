@@ -73,7 +73,7 @@
 | mysql.vx  | MySQL server  |
 
 # 1. Setup MySQL database
-- Setup MySQL database according to this guide: <https://joetanx.github.io//mysql-world_db>
+- Setup MySQL database according to this guide: <https://joetanx.github.io/mysql-world_db>
 
 # 2. Setup Conjur master
 - Setup Conjur master according to this guide: <https://joetanx.github.io/conjur-master>
