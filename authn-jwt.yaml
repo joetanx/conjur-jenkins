@@ -8,6 +8,8 @@
   #   id: provider-uri
   - !variable
     id: jwks-uri
+  - !variable
+    id: ca-cert
   # Optional variables
   # Uncomment one or all of the following optional variables.
   # Note: If you uncomment 'token-app-property' you must also uncomment 'identity-path', and vice versa;
