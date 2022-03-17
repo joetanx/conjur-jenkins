@@ -130,6 +130,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
   - mandatory authentication variables:
     - `provider-uri` - OIDC Provider URI. For applications that uses JWT providers that supports ODIC. Not used in this demo.
     - `jwks-uri` - JSON Web Key Set (JWKS) URI. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`.
+    - `ca-cert` - The CA certificate that signed the Jenkins server certificate. **Implemented only beginning from Conjur version 12.5.**
   - optional authentication variables:
     - `token-app-property` - The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `aud` concatenated with `jenkins_name` as identity. This variable is always used together with `identity-path`. 
     - `identity-path` - The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jwt-hosts.yaml` are created under `jwt-apps/jenkins`, so the `identity-path` is `jwt-apps/jenkins`.
@@ -169,25 +170,17 @@ conjur policy load -b root -f authn-jwt-hosts.yaml
 podman exec conjur sed -i -e '$aCONJUR_AUTHENTICATORS="authn,authn-jwt/jenkins"' /opt/conjur/etc/conjur.conf
 podman exec conjur sv restart conjur
 ```
-> If you are using a self-signed or custom certificate chain in your jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
+- Inject the CA certificate into a environment variable to be set into Conjur variable
+- The Jenkins server certificate in this demo is signed by a personal CA (`central.pem`), you should use your own CA certificate in your own environment
+- **Note**: The `authn-jwt/<service-id>/ca-cert` variable is implemented begining from Conjur version 12.5. If you are using an older version of Conjur, the CA certificates needs to be trusted by the Conjur container. Read the `Archived - Trusting CA certificate in Conjur container` section at the end of this page.
 ```console
-USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyberark:webservice:conjur/authn-jwt/jenkins:
-**CONJ00087E** Failed to fetch JWKS from 'https://jenkins.vx:8443/jwtauth/conjur-jwk-set'.
-Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: certificate verify failed (self signed certificate in certificate chain)>'
-```
-- Import your Jenkins certificate or the root CA certificate to Conjur appliance
-- **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a link **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to `/etc/ssl/certs/<your-ca-hash>.0`
-- This procedure is documented in: <https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed>
-```console
-curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/central.pem
-podman cp central.pem conjur:/etc/ssl/certs/central.pem
-podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
-podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/a3280000.0
+CA_CERT="$(curl -L https://github.com/joetanx/conjur-jenkins/raw/main/central.pem)"
 ```
 - Populate the variables
 - Assumes that the secret variables in `world_db` and `aws_api` are already populated in step 2 (Setup Conjur master)
 ```console
 conjur variable set -i conjur/authn-jwt/jenkins/jwks-uri -v https://jenkins.vx:8443/jwtauth/conjur-jwk-set
+conjur variable set -i conjur/authn-jwt/jenkins/ca-cert -v "$CA_CERT"
 conjur variable set -i conjur/authn-jwt/jenkins/token-app-property -v identity
 conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v jwt-apps/jenkins
 conjur variable set -i conjur/authn-jwt/jenkins/issuer -v https://jenkins.vx:8443
@@ -282,3 +275,21 @@ pipeline {
 ![image](images/AWS-Access-Key-Demo-4.png)
 - Select `Build Now` → Wait for build → Verify `Console Output`
 ![image](images/AWS-Access-Key-Demo-5.png)
+
+# Archived - Trusting CA certificate in Conjur container
+- For Conjur versions before 12.5, the `authn-jwt/<service-id>/ca-cert` variable was not yet implemented.
+- If you are using a self-signed or custom certificate chain in your jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
+```console
+USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyberark:webservice:conjur/authn-jwt/jenkins:
+**CONJ00087E** Failed to fetch JWKS from 'https://jenkins.vx:8443/jwtauth/conjur-jwk-set'.
+Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: certificate verify failed (self signed certificate in certificate chain)>'
+```
+- Import your Jenkins certificate or the root CA certificate to Conjur appliance
+- **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a link **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to `/etc/ssl/certs/<your-ca-hash>.0`
+- This procedure is documented in: <https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed>
+```console
+curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/central.pem
+podman cp central.pem conjur:/etc/ssl/certs/central.pem
+podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
+podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/a3280000.0
+```
