@@ -90,25 +90,25 @@ yum -y install https://archives.jenkins-ci.org/redhat-stable/jenkins-2.332.1-1.1
 - You should be using your own certificate in your own lab
 ```console
 curl -L -o jenkins.vx.pfx https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pfx
-keytool -importkeystore -srckeystore jenkins.vx.pfx -destkeystore /usr/lib/jenkins/.keystore -deststoretype pkcs12
+keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass 'cyberark'
+chown jenkins:jenkins /var/lib/jenkins/.keystore
 ```
 - Clean-up
 ```console
 rm -f jenkins.vx.pfx
 ```
 - Edit Jenkins configuration file to use HTTPS
+- **Note**: It appears that Jenkins has changed the SSL configuration from `/etc/sysconfig/jenkins` to `/usr/lib/systemd/system/jenkins.service` beginning with version 2.332.1 (Ref: <https://www.jenkins.io/doc/book/system-administration/systemd-services/>)
 ```console
-sed -i 's/JENKINS_PORT=\"8080\"/JENKINS_PORT=\"-1\"/' /etc/sysconfig/jenkins
-sed -i 's/JENKINS_HTTPS_PORT=\"\"/JENKINS_HTTPS_PORT=\"8443\"/' /etc/sysconfig/jenkins
-sed -i 's/JENKINS_HTTPS_KEYSTORE=\"\"/JENKINS_HTTPS_KEYSTORE=\"\/usr\/lib\/jenkins\/.keystore\"/' /etc/sysconfig/jenkins
-sed -i 's/JENKINS_HTTPS_KEYSTORE_PASSWORD=\"\"/JENKINS_HTTPS_KEYSTORE_PASSWORD=\"cyberark\"/' /etc/sysconfig/jenkins
-sed -i 's/JENKINS_HTTPS_LISTEN_ADDRESS=\"\"/JENKINS_HTTPS_LISTEN_ADDRESS=\"0.0.0.0\"/' /etc/sysconfig/jenkins
+sed -i 's/JENKINS_PORT=8080/JENKINS_PORT=-1/' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_LISTEN_ADDRESS/a Environment=\"JENKINS_HTTPS_LISTEN_ADDRESS=\"' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_PORT/a Environment=\"JENKINS_HTTPS_PORT=8443\"' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_KEYSTORE=/a Environment=\"JENKINS_HTTPS_KEYSTORE=\/var\/lib\/jenkins\/.keystore\"' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_KEYSTORE_PASSWORD/a Environment=\"JENKINS_HTTPS_KEYSTORE_PASSWORD=cyberark\"' /usr/lib/systemd/system/jenkins.service
 ```
 - Reload services, enable Jenkins to start on boot, start Jenkins service, allow Jenkins on firewall
 ```console
-systemctl daemon-reload
-systemctl enable jenkins
-systemctl start jenkins
+systemctl enable --now jenkins
 systemctl status jenkins
 firewall-cmd --add-port 8443/tcp --permanent && firewall-cmd --reload
 ```
