@@ -61,8 +61,7 @@
 
 ### Software Versions
 - RHEL 8.5
-- Podman 3.3.1
-- docker.io/jenkins/jenkins:lts-jdk11 (which is 2.339 at point of writing)
+- Jenkins 2.332.1
 - Conjur Enterprise 12.5
 
 ### Servers
@@ -80,58 +79,33 @@
 - Setup Conjur master according to this guide: <https://joetanx.github.io/conjur-master>
 
 # 3. Setup Jenkins
-## 3.1. Prepare the necessary prerequisites
-- Install Podman, setup data directory, setup certificate
-- This demo uses a certificate for `jenkins.vx` FQDN which is signed by my personal CA, you should use your own certificate chain
+## 3.1. Install Jenkins
+```console
+yum -y install java-11-openjdk-devel https://download-ib01.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/d/daemonize-1.7.8-1.el8.x86_64.rpm
+yum -y install https://archives.jenkins-ci.org/redhat-stable/jenkins-2.332.1-1.1.noarch.rpm
+```
+
+## 3.2. Configure Jenkins to use HTTPS
+- The Jenkins server certificate in this demo is signed by a personal CA, you should use your own certificate chain in your own environment
   - Refer to https://joetanx.github.io/self-signed-ca/ for a guide to generate your own certificates
-- ☝️ Note on Jenkins data volume: The Jenkin container runs as Jenkins user with UID 1000 by default, to allow the container to access the data volume on the host, you need to do either of this:
-  1. Change the ownership of the data volume to 1000:1000 (which is what we are doing for this demo)
-  2. Run the container as another user using `podman run --user $(id -u):$(id -g)`
 ```console
-yum -y install podman
-mkdir /var/jenkins
-curl -L -o /var/jenkins/jenkins.vx.pem https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pem
-curl -L -o /var/jenkins/jenkins.vx.key https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.key
-chown -R 1000:1000 /var/jenkins
+curl -L -o jenkins.vx.pfx https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pfx
+keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass 'cyberark'
+chown jenkins:jenkins /var/lib/jenkins/.keystore
+```
+- Edit Jenkins configuration file to use HTTPS
+- ☝️ **Note**: Jenkins changed the SSL configuration from `/etc/sysconfig/jenkins` to `/usr/lib/systemd/system/jenkins.service` beginning with version 2.332.1 (Ref: <https://www.jenkins.io/doc/book/system-administration/systemd-services/>)
+```console
+sed -i 's/JENKINS_PORT=8080/JENKINS_PORT=-1/' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_LISTEN_ADDRESS/a Environment=\"JENKINS_HTTPS_LISTEN_ADDRESS=\"' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_PORT/a Environment=\"JENKINS_HTTPS_PORT=8443\"' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_KEYSTORE=/a Environment=\"JENKINS_HTTPS_KEYSTORE=\/var\/lib\/jenkins\/.keystore\"' /usr/lib/systemd/system/jenkins.service
+sed -i '/JENKINS_HTTPS_KEYSTORE_PASSWORD/a Environment=\"JENKINS_HTTPS_KEYSTORE_PASSWORD=cyberark\"' /usr/lib/systemd/system/jenkins.service
 ```
 
-## 3.2. Run the Jenkins container
-- We will run the Jenkins container with below options:
-  - `-p 8443:8443` or `--network host`: select the type of network you wish to run on, if you choose to run on host network, run the `firewall-cmd` commands below to allow communications through the firewall
-  - `-v /var/jenkins:/var/jenkins_home`: mount the data directory we prepared earlier to the Jenkins home directory, all persistent data will be stored on this directory
-  - JENKINS_OPTS:
-    - `--httpPort=-1`: disable the non-ssl port
-    - `--httpsPort=8443`: set the ssl port
-    - `--httpsCertificate=/var/jenkins_home/jenkins.vx.pem`: certificate location
-    - `--httpsPrivateKey=/var/jenkins_home/jenkins.vx.key`: private key location, ☝️ note that this should be in `RSA PRIVATE KEY` format, or you will run into `Cannot load private key; try using a Java keystore instead.`/`java.io.IOException: DerValue.getBigInteger, not an int 48` error
-      - More on the private key error: <https://issues.jenkins.io/browse/JENKINS-22448>
-
-### 3.2.1. Run the Jenkins container on default network and expose port 8443/tcp
-```console
-podman run --name jenkins -p 8443:8443 -v /var/jenkins:/var/jenkins_home -e JENKINS_OPTS="--httpPort=-1 --httpsPort=8443 --httpsCertificate=/var/jenkins_home/jenkins.vx.pem --httpsPrivateKey=/var/jenkins_home/jenkins.vx.key" docker.io/jenkins/jenkins:lts-jdk11
-```
-
-### 3.2.2. Run the Jenkins container on host network
-```console
-podman run --name jenkins -d --network host -v /var/jenkins:/var/jenkins_home -e JENKINS_OPTS="--httpPort=-1 --httpsPort=8443 --httpsCertificate=/var/jenkins_home/jenkins.vx.pem --httpsPrivateKey=/var/jenkins_home/jenkins.vx.key" docker.io/jenkins/jenkins:lts-jdk11
-firewall-cmd --add-port 8443/tcp --permanent && firewall-cmd --reload
-```
-
-### 3.3. Verify that Jenkins container is running and retrieve initial admin password
-```console
-podman logs jenkins
-podman exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
-```
-
-### 3.4. Configure container to start on boot
-- Run the Jenkins container as systemd service and configure it to setup with container host
-- Ref: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html/managing_containers/running_containers_as_systemd_services_with_podman
-```console
-podman generate systemd jenkins --name --container-prefix="" --separator="" > /etc/systemd/system/jenkins.service
-systemctl enable jenkins
-```
-
-### 3.5. Initialize Jenkins
+### 3.4. Initialize Jenkins
+- Retrieve Jenkins initial admin password
+  - `cat /var/log/jenkins/jenkins.log` or `cat /var/lib/jenkins/secrets/initialAdminPassword`
 - Browse to the Jenkins URL `https://jenkins.vx:8443`
   - `Unlock Jenkins`: Enter the initial admin password
   - `Customize Jenkins`: Select `Install suggested plugins` and wait for the plugins to install (this will take a while...)
@@ -139,8 +113,26 @@ systemctl enable jenkins
   - `Instance Configuration page`: Configure `Jenkins URL` according to your environment
     - ☝️ Note that you need to configure the `Jenkins URL` for the JWT integration to work
 
+### 3.5. Prepare MySQL and AWS CLI client tools
+- MySQL and AWS CLI client tools are needed in the Jenkins project execution later
+- Setup MySQL client
+```console
+yum -y mysql
+```
+- Setup AWS CLI
+```console
+yum -y install unzip
+curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+unzip awscliv2.zip
+./aws/install
+```
+- Clean-up
+```console
+rm -rf aws*
+```
+
 # 4. Conjur policies for Jenkins JWT
-## Details of Conjur policies used in this demo
+## 4.1. Details of Conjur policies used in this demo
 - Ref: <https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm>
 - `authn-jwt.yaml` - Configures the JWT authenticator
   - defines the authenticator webservice at `authn-jwt/jenkins`
@@ -167,19 +159,16 @@ systemctl enable jenkins
   - `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are granted access to secrets in `aws_api` and `world_db` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
 - ☝️ **Note**: `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in <https://joetanx.github.io/conjur-master>. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
 
-## Load the Conjur policies and prepare Conjur for Jenkins JWT
-- Download the Conjur policies
-```console
-curl -L -o authn-jwt.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt.yaml
-curl -L -o authn-jwt-hosts.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt-hosts.yaml
-```
+## 4.2. Load the Conjur policies and prepare Conjur for Jenkins JWT
 - Login to Conjur
 ```console
 conjur init -u https://conjur.vx
 conjur login -i admin -p CyberArk123!
 ```
-- Load the policies to Conjur
+- Download and load the Conjur policies
 ```console
+curl -L -o authn-jwt.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt.yaml
+curl -L -o authn-jwt-hosts.yaml https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt-hosts.yaml
 conjur policy load -b root -f authn-jwt.yaml
 conjur policy load -b root -f authn-jwt-hosts.yaml
 ```
@@ -189,7 +178,7 @@ podman exec conjur sed -i -e '$aCONJUR_AUTHENTICATORS="authn,authn-jwt/jenkins"'
 podman exec conjur sv restart conjur
 ```
 - Inject the CA certificate into a environment variable to be set into Conjur variable
-- The Jenkins server certificate in this demo is signed by a personal CA (`central.pem`), you should use your own CA certificate in your own environment
+- The Jenkins server certificate in this demo is signed by a personal CA (`central.pem`), you should use your own certificate chain in your own environment
 - ☝️ **Note**: The `authn-jwt/<service-id>/ca-cert` variable is implemented begining from Conjur version 12.5. If you are using an older version of Conjur, the CA certificates needs to be trusted by the Conjur container. Read the `Archived - Trusting CA certificate in Conjur container` section at the end of this page.
 ```console
 CA_CERT="$(curl -L https://github.com/joetanx/conjur-jenkins/raw/main/central.pem)"
@@ -204,17 +193,9 @@ conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v jwt-apps/jenkin
 conjur variable set -i conjur/authn-jwt/jenkins/issuer -v https://jenkins.vx:8443
 conjur variable set -i conjur/authn-jwt/jenkins/audience -v vxlab
 ```
-- We will use the AWS CLI in Jenkins project to demonstrate the AWS API calls
-- Setup AWS CLI
-```console
-yum -y install unzip
-curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
-unzip awscliv2.zip
-./aws/install
-```
 - Clean-up
 ```console
-rm -rf *.yaml central.pem aws awscliv2.zip
+rm -rf *.yaml central.pem
 ```
 
 # 5. Configure Jenkins
@@ -310,47 +291,4 @@ curl -L -o central.pem https://github.com/joetanx/conjur-jenkins/raw/main/centra
 podman cp central.pem conjur:/etc/ssl/certs/central.pem
 podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
 podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/a3280000.0
-```
-
-# Archived - RPM-based Jenkins Installation
-- Install dependencies, import rpm key, install Jenkins
-```console
-yum -y install java-devel
-yum -y install https://download-ib01.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/d/daemonize-1.7.8-1.el8.x86_64.rpm
-rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
-yum -y install https://archives.jenkins-ci.org/redhat-stable/jenkins-2.332.1-1.1.noarch.rpm
-```
-- Download and import SSL certificate for Jenkins
-- You should be using your own certificate in your own lab
-```console
-curl -L -o jenkins.vx.pfx https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pfx
-keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass 'cyberark'
-chown jenkins:jenkins /var/lib/jenkins/.keystore
-```
-- Clean-up
-```console
-rm -f jenkins.vx.pfx
-```
-- Edit Jenkins configuration file to use HTTPS
-- **Note**: It appears that Jenkins has changed the SSL configuration from `/etc/sysconfig/jenkins` to `/usr/lib/systemd/system/jenkins.service` beginning with version 2.332.1 (Ref: <https://www.jenkins.io/doc/book/system-administration/systemd-services/>)
-```console
-sed -i 's/JENKINS_PORT=8080/JENKINS_PORT=-1/' /usr/lib/systemd/system/jenkins.service
-sed -i '/JENKINS_HTTPS_LISTEN_ADDRESS/a Environment=\"JENKINS_HTTPS_LISTEN_ADDRESS=\"' /usr/lib/systemd/system/jenkins.service
-sed -i '/JENKINS_HTTPS_PORT/a Environment=\"JENKINS_HTTPS_PORT=8443\"' /usr/lib/systemd/system/jenkins.service
-sed -i '/JENKINS_HTTPS_KEYSTORE=/a Environment=\"JENKINS_HTTPS_KEYSTORE=\/var\/lib\/jenkins\/.keystore\"' /usr/lib/systemd/system/jenkins.service
-sed -i '/JENKINS_HTTPS_KEYSTORE_PASSWORD/a Environment=\"JENKINS_HTTPS_KEYSTORE_PASSWORD=cyberark\"' /usr/lib/systemd/system/jenkins.service
-```
-- Reload services, enable Jenkins to start on boot, start Jenkins service, allow Jenkins on firewall
-```console
-systemctl enable --now jenkins
-systemctl status jenkins
-firewall-cmd --add-port 8443/tcp --permanent && firewall-cmd --reload
-```
-- Retrieve Jenkins initial admin password
-```console
-cat /var/log/jenkins/jenkins.log
-```
-or
-```console
-cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
