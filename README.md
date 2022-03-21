@@ -91,6 +91,7 @@ yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stab
 curl -L -o jenkins.vx.pfx https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pfx
 keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass 'cyberark'
 chown jenkins:jenkins /var/lib/jenkins/.keystore
+rm -f jenkins.vx.pfx
 ```
 - Edit Jenkins configuration file to use HTTPS
 - ☝️ **Note**: Jenkins changed the SSL configuration from `/etc/sysconfig/jenkins` to `/usr/lib/systemd/system/jenkins.service` beginning with version 2.332.1 (Ref: <https://www.jenkins.io/doc/book/system-administration/systemd-services/>)
