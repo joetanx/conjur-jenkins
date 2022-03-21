@@ -104,8 +104,15 @@ sed -i '/JENKINS_HTTPS_KEYSTORE_PASSWORD/a Environment=\"JENKINS_HTTPS_KEYSTORE_
 ```
 
 ### 3.4. Initialize Jenkins
+- Allow Jenkins on firewall and start Jenkins
+```console
+firewall-cmd --add-port 8443/tcp --permanent && firewall-cmd --reload
+systemctl enable --now jenkins
+```
 - Retrieve Jenkins initial admin password
-  - `cat /var/log/jenkins/jenkins.log` or `cat /var/lib/jenkins/secrets/initialAdminPassword`
+```console
+cat /var/lib/jenkins/secrets/initialAdminPassword
+```
 - Browse to the Jenkins URL `https://jenkins.vx:8443`
   - `Unlock Jenkins`: Enter the initial admin password
   - `Customize Jenkins`: Select `Install suggested plugins` and wait for the plugins to install (this will take a while...)
