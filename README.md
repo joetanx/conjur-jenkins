@@ -202,7 +202,7 @@ conjur variable set -i conjur/authn-jwt/jenkins/audience -v vxlab
 ```
 - Clean-up
 ```console
-rm -rf *.yaml central.pem
+rm -rf *.yaml
 ```
 
 # 5. Configure Jenkins
