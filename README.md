@@ -124,7 +124,7 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 - MySQL and AWS CLI client tools are needed in the Jenkins project execution later
 - Setup MySQL client
 ```console
-yum -y mysql
+yum -y install mysql
 ```
 - Setup AWS CLI
 ```console
