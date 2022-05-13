@@ -62,7 +62,7 @@
 ### Software Versions
 - RHEL 8.5
 - Jenkins 2.332.3
-- Conjur Enterprise 12.5.1
+- Conjur Enterprise 12.6.0
 
 ### Servers
 
