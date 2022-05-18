@@ -89,7 +89,7 @@ yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stab
   - Refer to https://joetanx.github.io/self-signed-ca/ for a guide to generate your own certificates
 ```console
 curl -L -o jenkins.vx.pfx https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pfx
-keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass 'cyberark'
+keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass cyberark
 chown jenkins:jenkins /var/lib/jenkins/.keystore
 rm -f jenkins.vx.pfx
 ```
