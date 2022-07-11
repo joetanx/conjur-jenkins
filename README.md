@@ -60,8 +60,8 @@
 ⑦ The Jenkins project will then use the access token to retrieve the secrets
 
 ### Software Versions
-- RHEL 8.5
-- Jenkins 2.332.3
+- RHEL 9.0
+- Jenkins 2.346.1
 - Conjur Enterprise 12.6.0
 
 ### Servers
@@ -81,7 +81,7 @@
 # 3. Setup Jenkins
 ## 3.1. Install Jenkins
 ```console
-yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stable/jenkins-2.332.3-1.1.noarch.rpm
+yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stable/jenkins-2.346.1-1.1.noarch.rpm
 ```
 
 ## 3.2. Configure Jenkins to use HTTPS
