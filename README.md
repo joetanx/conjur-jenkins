@@ -61,8 +61,8 @@
 
 ### Software Versions
 - RHEL 9.0
-- Jenkins 2.346.3
-- Conjur Enterprise 12.6.0
+- Jenkins 2.361.1
+- Conjur Enterprise 12.7.0
 
 ### Servers
 
@@ -81,7 +81,7 @@
 # 3. Setup Jenkins
 ## 3.1. Install Jenkins
 ```console
-yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stable/jenkins-2.346.3-1.1.noarch.rpm
+yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stable/jenkins-2.361.1-1.1.noarch.rpm
 ```
 
 ## 3.2. Configure Jenkins to use HTTPS
