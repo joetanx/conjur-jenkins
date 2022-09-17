@@ -88,7 +88,7 @@ yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stab
 - The Jenkins server certificate in this demo is signed by a personal CA, you should use your own certificate chain in your own environment
   - Refer to https://joetanx.github.io/self-signed-ca/ for a guide to generate your own certificates
 ```console
-curl -L -O https://github.com/joetanx/conjur-jenkins/raw/main/jenkins.vx.pfx
+curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/jenkins.vx.pfx
 keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass cyberark
 chown jenkins:jenkins /var/lib/jenkins/.keystore
 rm -f jenkins.vx.pfx
@@ -129,8 +129,8 @@ yum -y install mysql
 - Setup AWS CLI
 ```console
 yum -y install unzip
-curl -L -o awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-unzip awscliv2.zip
+curl -O https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+unzip awscli-exe-linux-x86_64.zip
 ./aws/install
 ```
 - Clean-up
@@ -174,8 +174,8 @@ conjur login -i admin -p CyberArk123!
 ```
 - Download and load the Conjur policies
 ```console
-curl -L -O https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt.yaml
-curl -L -O https://github.com/joetanx/conjur-jenkins/raw/main/authn-jwt-hosts.yaml
+curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/authn-jwt.yaml
+curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/authn-jwt-hosts.yaml
 conjur policy load -b root -f authn-jwt.yaml
 conjur policy load -b root -f authn-jwt-hosts.yaml
 ```
@@ -188,7 +188,7 @@ podman exec conjur sv restart conjur
 - The Jenkins server certificate in this demo is signed by a personal CA (`central.pem`), you should use your own certificate chain in your own environment
 - ☝️ **Note**: The `authn-jwt/<service-id>/ca-cert` variable is implemented begining from Conjur version 12.5. If you are using an older version of Conjur, the CA certificates needs to be trusted by the Conjur container. Read the `Archived - Trusting CA certificate in Conjur container` section at the end of this page.
 ```console
-CA_CERT="$(curl -L https://github.com/joetanx/conjur-jenkins/raw/main/central.pem)"
+CA_CERT="$(curl https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/central.pem)"
 ```
 - Populate the variables
 - Assumes that the secret variables in `world_db` and `aws_api` are already populated in step 2 (Setup Conjur master)
@@ -294,7 +294,7 @@ Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: c
 - **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a link **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to `/etc/ssl/certs/<your-ca-hash>.0`
 - This procedure is documented in: <https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed>
 ```console
-curl -L -O https://github.com/joetanx/conjur-jenkins/raw/main/central.pem
+curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/central.pem
 podman cp central.pem conjur:/etc/ssl/certs/central.pem
 podman exec conjur openssl x509 -noout -hash -in /etc/ssl/certs/central.pem
 podman exec conjur ln -s /etc/ssl/certs/central.pem /etc/ssl/certs/a3280000.0
