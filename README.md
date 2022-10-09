@@ -1,5 +1,7 @@
 # Integrate Jenkins with Conjur Enterprise using the JWT authenticator
+
 ## Introduction
+
 - This guide demonstrates the integration between Jenkins and Conjur using the JWT authenticator.
 - The JWT authenticator relies on the trust between Conjur and Jenkins via the JSON Web Key Set (JWKS).
 - Each project on Jenkins retrieving credentials will have its JWT signed and verified via the JWKS.
@@ -9,6 +11,7 @@
   - AWS-Access-Key-Demo: Run an AWS CLI command to list users using the credentials retrieved from Conjur
 
 ## How does Jenkins integration with Conjur using JWT work?
+
 ![image](images/Architecture.png)
 
 ① The Jenkins project requests for a JWT from the Conjur Secrets Plugin
@@ -60,6 +63,7 @@
 ⑦ The Jenkins project will then use the access token to retrieve the secrets
 
 ### Software Versions
+
 - RHEL 9.0
 - Jenkins 2.361.1
 - Conjur Enterprise 12.7.0
@@ -73,28 +77,36 @@
 | mysql.vx  | MySQL server  |
 
 # 1. Setup MySQL database
+
 - Setup MySQL database according to this guide: <https://joetanx.github.io/mysql-world_db>
 
 # 2. Setup Conjur master
+
 - Setup Conjur master according to this guide: <https://joetanx.github.io/conjur-master>
 
 # 3. Setup Jenkins
+
 ## 3.1. Install Jenkins
+
 ```console
 yum -y install java-11-openjdk-devel https://archives.jenkins-ci.org/redhat-stable/jenkins-2.361.1-1.1.noarch.rpm
 ```
 
 ## 3.2. Configure Jenkins to use HTTPS
+
 - The Jenkins server certificate in this demo is signed by a personal CA, you should use your own certificate chain in your own environment
   - Refer to https://joetanx.github.io/self-signed-ca/ for a guide to generate your own certificates
+
 ```console
 curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/jenkins.vx.pfx
 keytool -importkeystore -srckeystore jenkins.vx.pfx -srcstorepass cyberark -destkeystore /var/lib/jenkins/.keystore -deststoretype pkcs12 -deststorepass cyberark
 chown jenkins:jenkins /var/lib/jenkins/.keystore
 rm -f jenkins.vx.pfx
 ```
+
 - Edit Jenkins configuration file to use HTTPS
 - ☝️ **Note**: Jenkins changed the SSL configuration from `/etc/sysconfig/jenkins` to `/usr/lib/systemd/system/jenkins.service` beginning with version 2.332.1 (Ref: <https://www.jenkins.io/doc/book/system-administration/systemd-services/>)
+
 ```console
 sed -i 's/JENKINS_PORT=8080/JENKINS_PORT=-1/' /usr/lib/systemd/system/jenkins.service
 sed -i '/JENKINS_HTTPS_LISTEN_ADDRESS/a Environment=\"JENKINS_HTTPS_LISTEN_ADDRESS=\"' /usr/lib/systemd/system/jenkins.service
@@ -104,12 +116,16 @@ sed -i '/JENKINS_HTTPS_KEYSTORE_PASSWORD/a Environment=\"JENKINS_HTTPS_KEYSTORE_
 ```
 
 ### 3.4. Initialize Jenkins
+
 - Allow Jenkins on firewall and start Jenkins
+
 ```console
 firewall-cmd --add-port 8443/tcp --permanent && firewall-cmd --reload
 systemctl enable --now jenkins
 ```
+
 - Retrieve Jenkins initial admin password
+
 ```console
 cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
@@ -123,23 +139,30 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 ### 3.5. Prepare MySQL and AWS CLI client tools
 - MySQL and AWS CLI client tools are needed in the Jenkins project execution later
 - Setup MySQL client
+
 ```console
 yum -y install mysql
 ```
+
 - Setup AWS CLI
+
 ```console
 yum -y install unzip
 curl -O https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
 unzip awscli-exe-linux-x86_64.zip
 ./aws/install
 ```
+
 - Clean-up
+
 ```console
 rm -rf aws*
 ```
 
 # 4. Conjur policies for Jenkins JWT
+
 ## 4.1. Details of Conjur policies used in this demo
+
 - Ref: <https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm>
 - `authn-jwt.yaml` - Configures the JWT authenticator
   - defines the authenticator webservice at `authn-jwt/jenkins`
@@ -167,31 +190,41 @@ rm -rf aws*
 - ☝️ **Note**: `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in <https://joetanx.github.io/conjur-master>. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
 
 ## 4.2. Load the Conjur policies and prepare Conjur for Jenkins JWT
+
 - Login to Conjur
+
 ```console
 conjur init -u https://conjur.vx
 conjur login -i admin -p CyberArk123!
 ```
+
 - Download and load the Conjur policies
+
 ```console
 curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/authn-jwt.yaml
 curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/authn-jwt-hosts.yaml
 conjur policy load -b root -f authn-jwt.yaml
 conjur policy load -b root -f authn-jwt-hosts.yaml
 ```
+
 - Enable the JWT Authenticator
+
 ```console
 podman exec conjur sed -i -e '$aCONJUR_AUTHENTICATORS="authn,authn-jwt/jenkins"' /opt/conjur/etc/conjur.conf
 podman exec conjur sv restart conjur
 ```
+
 - Inject the CA certificate into a environment variable to be set into Conjur variable
 - The Jenkins server certificate in this demo is signed by a personal CA (`central.pem`), you should use your own certificate chain in your own environment
 - ☝️ **Note**: The `authn-jwt/<service-id>/ca-cert` variable is implemented begining from Conjur version 12.5. If you are using an older version of Conjur, the CA certificates needs to be trusted by the Conjur container. Read the `Archived - Trusting CA certificate in Conjur container` section at the end of this page.
+
 ```console
 CA_CERT="$(curl https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/central.pem)"
 ```
+
 - Populate the variables
 - Assumes that the secret variables in `world_db` and `aws_api` are already populated in step 2 (Setup Conjur master)
+
 ```console
 conjur variable set -i conjur/authn-jwt/jenkins/jwks-uri -v https://jenkins.vx:8443/jwtauth/conjur-jwk-set
 conjur variable set -i conjur/authn-jwt/jenkins/ca-cert -v "$CA_CERT"
@@ -200,18 +233,26 @@ conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v jwt-apps/jenkin
 conjur variable set -i conjur/authn-jwt/jenkins/issuer -v https://jenkins.vx:8443
 conjur variable set -i conjur/authn-jwt/jenkins/audience -v vxlab
 ```
+
 - Clean-up
+
 ```console
 rm -f *.yaml
 ```
 
 # 5. Configure Jenkins
+
 ## 5.1 Configure Conjur Secrets plugin
+
 - Select `Manage Jenkins` → `Manage Plugins` → `Available`
 - Search for `conjur`
+
 ![image](images/Plugin-1.png)
+
 - Check the plugin and select `Install without restart`
+
 ![image](images/Plugin-2.png)
+
 - Select `Manage Jenkins` → `Configure System`, scroll to `Conjur Appliance` and configure the following:
   - Account: `cyberark`
   - Appliance URL: `https://conjur.vx`
@@ -221,15 +262,23 @@ rm -f *.yaml
   - Enable Context Aware Credential Stores?: `✓`
   - Identity Format Fields: `aud,jenkins_name`
 - Save
+
 ![image](images/Plugin-3.png)
 
 ## 5.2 Configure MySQL-Demo project
+
 - Select `New Item` → Enter `MySQL-Demo` as name → Select `Pipeline`
+
 ![image](images/MySQL-Demo-1.png)
+
 - Scroll to `Conjur Appliance` → Click `Refresh Credential Store`
+
 ![image](images/MySQL-Demo-2.png)
+
 - For the `Pipeline script`, we will be using a simple `SHOW DATABASES` command to show that jenkins is able to login to the MySQL database with secrets fetched from conjur
+
 - The secrets retrieval is done using `withCredentials` pipeline step (you can use the `Pipeline Syntax` function in Jenkins to help generate the syntax)
+
 ```console
 pipeline {
     agent any
@@ -244,20 +293,31 @@ pipeline {
     }
 }
 ```
+
 ![image](images/MySQL-Demo-3.png)
+
 - Save and exit the project → Select the project again → Select `Credentials`
 - The credentials that the project is authorized to access were populated automatically from the `Refresh Credential Store` action earlier
+
 ![image](images/MySQL-Demo-4.png)
+
 - Select `Build Now` → Wait for build → Verify `Console Output`
+
 ![image](images/MySQL-Demo-5.png)
 
 ## 5.3 Configure AWS-Access-Key-Demo project
+
 - Select `New Item` → Enter `AWS-Access-Key-Demo` as name → Select `Pipeline`
+
 ![image](images/AWS-Access-Key-Demo-1.png)
+
 - Scroll to `Conjur Appliance` → Click `Refresh Credential Store`
+
 ![image](images/AWS-Access-Key-Demo-2.png)
+
 - For the `Pipeline script`, we will be using a simple `aws iam list-users` command to show that jenkins is able to use AWS CLI with secrets fetched from conjur
 - The secrets retrieval is done using `withCredentials` pipeline step (you can use the `Pipeline Syntax` function in Jenkins to help generate the syntax)
+
 ```console
 pipeline {
     agent any
@@ -275,6 +335,7 @@ pipeline {
     }
 }
 ```
+
 ![image](images/AWS-Access-Key-Demo-3.png)
 - Save and exit the project → Select the project again → Select `Credentials`
 - The credentials that the project is authorized to access were populated automatically from the `Refresh Credential Store` action earlier
@@ -283,16 +344,20 @@ pipeline {
 ![image](images/AWS-Access-Key-Demo-5.png)
 
 # Archived - Trusting CA certificate in Conjur container
+
 - For Conjur versions before 12.5, the `authn-jwt/<service-id>/ca-cert` variable was not yet implemented.
 - If you are using a self-signed or custom certificate chain in your jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
+
 ```console
 USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyberark:webservice:conjur/authn-jwt/jenkins:
 **CONJ00087E** Failed to fetch JWKS from 'https://jenkins.vx:8443/jwtauth/conjur-jwk-set'.
 Reason: '#<OpenSSL::SSL::SSLError: SSL_connect returned=1 errno=0 state=error: certificate verify failed (self signed certificate in certificate chain)>'
 ```
+
 - Import your Jenkins certificate or the root CA certificate to Conjur appliance
 - **Note**: The hash of my CA certificate is **a3280000**, hence I need to create a link **a3280000.0** to my CA certificate. You will need to get the hash of your own CA certificate from the openssl command, and link the certificate to `/etc/ssl/certs/<your-ca-hash>.0`
 - This procedure is documented in: <https://cyberark-customers.force.com/s/article/Conjur-CONJ0087E-Failed-to-fetch-JWKS-from-GitLab-certificate-verify-failed>
+
 ```console
 curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/central.pem
 podman cp central.pem conjur:/etc/ssl/certs/central.pem
