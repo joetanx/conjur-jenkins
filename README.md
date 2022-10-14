@@ -6,7 +6,7 @@
 - The JWT authenticator relies on the trust between Conjur and Jenkins via the JSON Web Key Set (JWKS).
 - Each project on Jenkins retrieving credentials will have its JWT signed and verified via the JWKS.
 - This mitigates the "secret-zero" problem and enable each project on Jenkins to be uniquely identified.
-- The demonstration will run 2 Jenkins project:
+- The demonstration will run 2 projects:
   - MySQL-Demo: Run a sql command to show databases using the credentials retrieved from Conjur
   - AWS-Access-Key-Demo: Run an AWS CLI command to list users using the credentials retrieved from Conjur
 
@@ -43,7 +43,7 @@
 ③ The Jenkins project sends an authentication request to Conjur using the JWT authenticator web service
 
 - The Jenkins project finds the URI for JWT authenticator using `<Conjur-Appliance-URL>/authn-jwt/<service-id>`
-- The URI configure in this demo is `https://conjur.vx/authn-jwt/jenkins`
+- The URI for this demo is `https://conjur.vx/authn-jwt/jenkins`
 
 ④ Conjur fetches the public key from the JWKS of the Conjur Secrets Plugin
 
@@ -56,7 +56,7 @@
 - The `token-app-property` variable is set in Conjur as the `identity` claim in this demo
 - The `identity` claim in Jenkins is configured as `<aud>-<jenkins-name>` in this demo
 - Conjur further verifies the applications details as configured in the `annotations` listed in the `host` (application identity) declaration
-- In this demo, annotations `jenkins_full_name`, `jenkins_task_noun` and `jenkins_pronoun` are defined for the application identity - the JWT claims from Jenkins needs to tally with the declaration for application authentication to be successful
+- Annotations `jenkins_full_name`, `jenkins_task_noun` and `jenkins_pronoun` are defined for the application identity in this demo- the JWT claims from Jenkins needs to tally with the declaration for application authentication to be successful
 
 ⑥ Conjur returns an access token to the Jenkins project if authentication is successful
 
@@ -66,15 +66,15 @@
 
 - RHEL 9.0
 - Jenkins 2.361.1
-- Conjur Enterprise 12.7.0
+- Conjur Enterprise 12.7.0.1
 
 ### Servers
 
 | Hostname  | Role |
 | --- | --- |
-| conjur.vx  | Conjur master  |
-| jenkins.vx  | Jenkins node  |
-| mysql.vx  | MySQL server  |
+| conjur.vx | Conjur master |
+| jenkins.vx | Jenkins node |
+| mysql.vx | MySQL server |
 
 # 1. Setup MySQL database
 
@@ -173,7 +173,7 @@ unzip awscli-exe-linux-x86_64.zip
 | `ca-cert` | The CA certificate that signed the Jenkins server certificate. **Implemented only beginning from Conjur version 12.5.** |
 | `token-app-property` | The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `aud` concatenated with `jenkins_name` as identity. This variable is always used together with `identity-path`.  |
 | `identity-path` | The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jwt-hosts.yaml` are created under `jwt-apps/jenkins`, so the `identity-path` is `jwt-apps/jenkins`. |
-| `issuer` | URI of the JWT issuer. This is your Jenkins URL. This is included in `iss` claim in the JWT token claims. |
+| `issuer` | URI of the JWT issuer. This is the Jenkins URL. This is included in `iss` claim in the JWT token claims. |
 | `enforced-claims` | List of claims that are enforced (i.e. must be present in the JWT token claims). Not used in this demo. |
 | `claim-aliases` | Map claims to aliases. Not used in this demo. |
 | `audience` | JWT audience configured in the Conjur Secrets Plugin under Jenkins. This is configured as `vxlab` in this demo. |
@@ -342,7 +342,7 @@ pipeline {
 # Archived - Trusting CA certificate in Conjur container
 
 - For Conjur versions before 12.5, the `authn-jwt/<service-id>/ca-cert` variable was not yet implemented.
-- If you are using a self-signed or custom certificate chain in your jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
+- If you are using a self-signed or custom certificate chain in your Jenkins like I did in this demo, you will encounter the following error in Conjur, because the Jenkins certificate chain is not trusted by Conjur applicance.
 
 ```console
 USERNAME_MISSING failed to authenticate with authenticator authn-jwt service cyberark:webservice:conjur/authn-jwt/jenkins:
