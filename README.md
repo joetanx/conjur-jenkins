@@ -203,8 +203,8 @@ conjur login -i admin -p CyberArk123!
 ```console
 curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/authn-jwt.yaml
 curl -O https://raw.githubusercontent.com/joetanx/conjur-jenkins/main/authn-jwt-hosts.yaml
-conjur policy load -b root -f authn-jwt.yaml
-conjur policy load -b root -f authn-jwt-hosts.yaml
+conjur policy load -b root -f authn-jwt.yaml && rm -f authn-jwt.yaml
+conjur policy load -b root -f authn-jwt-hosts.yaml && rm -f authn-jwt-hosts.yaml
 ```
 
 - Enable the JWT Authenticator
@@ -233,12 +233,6 @@ conjur variable set -i conjur/authn-jwt/jenkins/token-app-property -v identity
 conjur variable set -i conjur/authn-jwt/jenkins/identity-path -v jwt-apps/jenkins
 conjur variable set -i conjur/authn-jwt/jenkins/issuer -v https://jenkins.vx:8443
 conjur variable set -i conjur/authn-jwt/jenkins/audience -v vxlab
-```
-
-- Clean-up
-
-```console
-rm -f *.yaml
 ```
 
 # 5. Configure Jenkins
