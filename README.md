@@ -115,7 +115,7 @@ sed -i '/JENKINS_HTTPS_KEYSTORE=/a Environment=\"JENKINS_HTTPS_KEYSTORE=\/var\/l
 sed -i '/JENKINS_HTTPS_KEYSTORE_PASSWORD/a Environment=\"JENKINS_HTTPS_KEYSTORE_PASSWORD=cyberark\"' /usr/lib/systemd/system/jenkins.service
 ```
 
-### 3.4. Initialize Jenkins
+## 3.3. Initialize Jenkins
 
 - Allow Jenkins on firewall and start Jenkins
 
@@ -136,15 +136,17 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
   - `Instance Configuration page`: Configure `Jenkins URL` according to your environment
     - ☝️ Note that you need to configure the `Jenkins URL` for the JWT integration to work
 
-### 3.5. Prepare MySQL and AWS CLI client tools
-- MySQL and AWS CLI client tools are needed in the Jenkins project execution later
-- Setup MySQL client
+## 3.4. Prepare MySQL and AWS CLI client tools
+
+MySQL and AWS CLI client tools are needed in the Jenkins project execution later
+
+### 3.4.1. Setup MySQL client
 
 ```console
 yum -y install mysql
 ```
 
-- Setup AWS CLI
+### 3.4.2. Setup AWS CLI
 
 ```console
 yum -y install unzip
@@ -163,30 +165,41 @@ rm -rf aws*
 
 ## 4.1. Details of Conjur policies used in this demo
 
+### 4.1.1. authn-jwt.yaml
+- Configures the JWT authenticator
 - Ref: <https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm>
-- `authn-jwt.yaml` - Configures the JWT authenticator
-  - defines the authenticator webservice at `authn-jwt/jenkins`
-    - the format of the authenticator webservice is `authn-jwt/<service-id>`, the `<service-id>` used in this demo is `jenkins`, this will be entered into the Conjur Secrets Plugin configuration for `Auth WebService ID` below.
-  - mandatory authentication variables:
-    - `provider-uri` - OIDC Provider URI. For applications that uses JWT providers that supports ODIC. Not used in this demo.
-    - `jwks-uri` - JSON Web Key Set (JWKS) URI. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`.
-    - `ca-cert` - The CA certificate that signed the Jenkins server certificate. **Implemented only beginning from Conjur version 12.5.**
-  - optional authentication variables:
-    - `token-app-property` - The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `aud` concatenated with `jenkins_name` as identity. This variable is always used together with `identity-path`. 
-    - `identity-path` - The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jwt-hosts.yaml` are created under `jwt-apps/jenkins`, so the `identity-path` is `jwt-apps/jenkins`.
-    - `issuer` - URI of the JWT issuer. This is your Jenkins URL. This is included in `iss` claim in the JWT token claims.
-    - `enforced-claims` - List of claims that are enforced (i.e. must be present in the JWT token claims). Not used in this demo.
-    - `claim-aliases` - Map claims to aliases. Not used in this demo.
-    - `audience` - JWT audience configured in the Conjur Secrets Plugin under Jenkins. This is configured as `vxlab` in this demo.
-  - defines `consumers` group - applications that are authorized to authenticate using this JWT authenticator are added to this group
-  - defines `operators` group - users who are authorized to check the status of this JWT authenticator are added to this group
-- `authn-jwt-hosts.yaml`
-  - `jwt-apps/jenkins` - policy name, this is also the `identity-path` of the app IDs
-  - applications `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are configured
-    - the `id` of the `host` corresponds to the `token-app-property`
-    - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
-  - the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
-  - `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are granted access to secrets in `aws_api` and `world_db` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
+- Defines the authenticator webservice at `authn-jwt/jenkins`
+  - The format of the authenticator webservice is `authn-jwt/<service-id>`, the `<service-id>` used in this demo is `jenkins`, this will be entered into the Conjur Secrets Plugin configuration for `Auth WebService ID` in [5.1.](#51-configure-conjur-secrets-plugin).
+
+- Mandatory authentication variables (how the JWT Authenticator gets the signing keys):
+
+|   |   |
+|---|---|
+| `jwks-uri` | JSON Web Key Set (JWKS) URI. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`. |
+| `public-keys` | Used to provide a static JWKS to the JWT authenticator if Conjur is unable to reach a remote JWKS URI endpoint |
+
+- optional authentication variables:
+
+|   |   |
+|---|---|
+| `ca-cert` | The CA certificate that signed the Jenkins server certificate. **Implemented only beginning from Conjur version 12.5.** |
+| `token-app-property` | The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `aud` concatenated with `jenkins_name` as identity. This variable is always used together with `identity-path`.  |
+| `identity-path` | The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jwt-hosts.yaml` are created under `jwt-apps/jenkins`, so the `identity-path` is `jwt-apps/jenkins`. |
+| `issuer` | URI of the JWT issuer. This is your Jenkins URL. This is included in `iss` claim in the JWT token claims. |
+| `enforced-claims` | List of claims that are enforced (i.e. must be present in the JWT token claims). Not used in this demo. |
+| `claim-aliases` | Map claims to aliases. Not used in this demo. |
+| `audience` | JWT audience configured in the Conjur Secrets Plugin under Jenkins. This is configured as `vxlab` in this demo. |
+
+- Defines `consumers` group - applications that are authorized to authenticate using this JWT authenticator are added to this group
+- Defines `operators` group - users who are authorized to check the status of this JWT authenticator are added to this group
+
+### 4.1.2. authn-jwt-hosts.yaml
+- `jwt-apps/jenkins` - policy name, this is also the `identity-path` of the app IDs
+- applications `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are configured
+  - the `id` of the `host` corresponds to the `token-app-property`
+  - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
+- the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
+- `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are granted access to secrets in `aws_api` and `world_db` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
 - ☝️ **Note**: `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in <https://joetanx.github.io/conjur-master>. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
 
 ## 4.2. Load the Conjur policies and prepare Conjur for Jenkins JWT
@@ -237,7 +250,7 @@ conjur variable set -i conjur/authn-jwt/jenkins/audience -v vxlab
 
 # 5. Configure Jenkins
 
-## 5.1 Configure Conjur Secrets plugin
+## 5.1. Configure Conjur Secrets plugin
 
 - Select `Manage Jenkins` → `Manage Plugins` → `Available`
 - Search for `conjur`
@@ -260,7 +273,7 @@ conjur variable set -i conjur/authn-jwt/jenkins/audience -v vxlab
 
 ![image](images/Plugin-3.png)
 
-## 5.2 Configure MySQL-Demo project
+## 5.2. Configure MySQL-Demo project
 
 - Select `New Item` → Enter `MySQL-Demo` as name → Select `Pipeline`
 
@@ -300,7 +313,7 @@ pipeline {
 
 ![image](images/MySQL-Demo-5.png)
 
-## 5.3 Configure AWS-Access-Key-Demo project
+## 5.3. Configure AWS-Access-Key-Demo project
 
 - Select `New Item` → Enter `AWS-Access-Key-Demo` as name → Select `Pipeline`
 
