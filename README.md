@@ -152,13 +152,7 @@ yum -y install mysql
 yum -y install unzip
 curl -O https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
 unzip awscli-exe-linux-x86_64.zip
-./aws/install
-```
-
-- Clean-up
-
-```console
-rm -rf aws*
+./aws/install && rm -rf aws*
 ```
 
 # 4. Conjur policies for Jenkins JWT
@@ -166,22 +160,16 @@ rm -rf aws*
 ## 4.1. Details of Conjur policies used in this demo
 
 ### 4.1.1. authn-jwt.yaml
-- Configures the JWT authenticator
-- Ref: <https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm>
+- Configures the JWT authenticator (<https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm>)
 - Defines the authenticator webservice at `authn-jwt/jenkins`
   - The format of the authenticator webservice is `authn-jwt/<service-id>`, the `<service-id>` used in this demo is `jenkins`, this will be entered into the Conjur Secrets Plugin configuration for `Auth WebService ID` in [5.1.](#51-configure-conjur-secrets-plugin).
 
-- Mandatory authentication variables (how the JWT Authenticator gets the signing keys):
+- Defines the authentication variables: how the JWT Authenticator gets the signing keys
 
-|   |   |
+| Variables | Description |
 |---|---|
 | `jwks-uri` | JSON Web Key Set (JWKS) URI. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`. |
 | `public-keys` | Used to provide a static JWKS to the JWT authenticator if Conjur is unable to reach a remote JWKS URI endpoint |
-
-- Optional authentication variables:
-
-|   |   |
-|---|---|
 | `ca-cert` | The CA certificate that signed the Jenkins server certificate. **Implemented only beginning from Conjur version 12.5.** |
 | `token-app-property` | The JWT claim to be used to identify the application. This demo uses the `identity` claim from Jenkins, which is configured in the Conjur Secrets Plugin under Jenkins to use `aud` concatenated with `jenkins_name` as identity. This variable is always used together with `identity-path`.  |
 | `identity-path` | The Conjur policy path where the app ID (`host`) is defined in Conjur policy. The app IDs in `authn-jwt-hosts.yaml` are created under `jwt-apps/jenkins`, so the `identity-path` is `jwt-apps/jenkins`. |
