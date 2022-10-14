@@ -208,10 +208,11 @@ conjur policy load -b root -f authn-jwt-hosts.yaml
 ```
 
 - Enable the JWT Authenticator
+- ☝️ **Note**: This step requires that the `authenticators` section in `/etc/conjur/config/conjur.yml` to be configured (Ref: 2.5 <https://joetanx.github.io/conjur-master#25-allowlist-the-conjur-default-authenticator>)
 
 ```console
-podman exec conjur sed -i -e '$aCONJUR_AUTHENTICATORS="authn,authn-jwt/jenkins"' /opt/conjur/etc/conjur.conf
-podman exec conjur sv restart conjur
+podman exec conjur sed -i -e '/authenticators:/a\  - authn-jwt/jenkins' /etc/conjur/config/conjur.yml
+podman exec conjur evoke configuration apply
 ```
 
 - Inject the CA certificate into a environment variable to be set into Conjur variable
