@@ -178,7 +178,7 @@ rm -rf aws*
 | `jwks-uri` | JSON Web Key Set (JWKS) URI. For Jenkins this is `https://<Jenkins-URL>/jwtauth/conjur-jwk-set`. |
 | `public-keys` | Used to provide a static JWKS to the JWT authenticator if Conjur is unable to reach a remote JWKS URI endpoint |
 
-- optional authentication variables:
+- Optional authentication variables:
 
 |   |   |
 |---|---|
