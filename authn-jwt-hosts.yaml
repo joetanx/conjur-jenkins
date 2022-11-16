@@ -1,8 +1,10 @@
+- !group jenkins-admins
 - !policy
   id: jwt-apps/jenkins
+  owner: !group jenkins-admins
   body:
   - !layer
-  - &hosts
+  - &jenkins-hosts
     - !host
       id: vxlab-AWS-Access-Key-Demo
       annotations:
@@ -17,7 +19,7 @@
         authn-jwt/jenkins/jenkins_pronoun: Pipeline
   - !grant 
     role: !layer
-    members: *hosts
+    members: *jenkins-hosts
 - !grant
   role: !group conjur/authn-jwt/jenkins/consumers
   member: !layer jwt-apps/jenkins
@@ -27,4 +29,3 @@
 - !grant
   role: !group world_db/consumers
   member: !host jwt-apps/jenkins/vxlab-MySQL-Demo
-  
