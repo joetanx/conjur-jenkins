@@ -1,5 +1,6 @@
 - !policy
   id: conjur/authn-jwt/jenkins
+  owner: !group conjur-admins
   body:
   - !webservice
   # Mandatory variable: How the JWT Authenticator gets the signing keys
