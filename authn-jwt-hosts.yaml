@@ -1,4 +1,6 @@
-- !group jenkins-admins
+- !group
+  id: jenkins-admins
+  owner: !policy root
 - !policy
   id: jwt-apps/jenkins
   owner: !group jenkins-admins
