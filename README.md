@@ -47,7 +47,7 @@
 
 ④ Conjur fetches the public key from the JWKS of the Conjur Secrets Plugin
 
-- When enabled, the Conjur Secrets Plugin creates a JWT Key Set endpoint at `<Jenkins-URL>/jwtauth/conjur-jwk-set
+- When enabled, the Conjur Secrets Plugin creates a JWT Key Set endpoint at `<Jenkins-URL>/jwtauth/conjur-jwk-set`
 - This JWKS URI is set in the `jwks-uri` variable of the JWT authenticator in Conjur so that Conjur knows where to find the JWKS
 
 ⑤ Conjur verifies that the token is legit with the JWKS public key and authenticates application identity
