@@ -82,7 +82,7 @@
 
 # 2. Setup Conjur master
 
-- Setup Conjur master according to this guide: <https://github.com/joetanx/conjur-master>
+- Setup Conjur master according to this guide: <https://github.com/joetanx/setup/blob/main/conjur.md>
 
 # 3. Setup Jenkins
 
@@ -188,7 +188,7 @@ unzip awscli-exe-linux-x86_64.zip
   - annotations of the `host` are optional and corresponds to claims in the JWT token claims - the more annotations/claims configured, the more precise and secure the application authentication
 - the host layer is granted as a member of the `consumers` group defined in `authn-jwt.yaml` to authorize them to authenticate to the JWT authenticator
 - `vxlab-AWS-Access-Key-Demo` and `vxlab-MySQL-Demo` are granted access to secrets in `aws_api` and `world_db` by granting them as members of the respective `consumers` group defined in `app-vars.yaml`
-- ☝️ **Note**: `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in <https://github.com/joetanx/conjur-master>. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
+- ☝️ **Note**: `authn-jwt-hosts.yaml` builds on top of `app-vars.yaml` in <https://github.com/joetanx/setup/blob/main/app-vars.yaml>. Loading `authn-jwt-hosts.yaml` without having `app-vars.yaml` loaded previously will not work.
 
 ## 4.2. Load the Conjur policies and prepare Conjur for Jenkins JWT
 
@@ -209,7 +209,7 @@ conjur policy load -b root -f authn-jwt-hosts.yaml && rm -f authn-jwt-hosts.yaml
 ```
 
 - Enable the JWT Authenticator
-- ☝️ **Note**: This step requires that the `authenticators` section in `/etc/conjur/config/conjur.yml` to be configured (Ref: 2.5 <https://github.com/joetanx/conjur-master#25-allowlist-the-conjur-default-authenticator>)
+- ☝️ **Note**: This step requires that the `authenticators` section in `/etc/conjur/config/conjur.yml` to be configured (Ref: 2.5 <https://github.com/joetanx/setup/blob/main/conjur.md#25-allowlist-the-conjur-default-authenticator>)
 
 ```console
 podman exec conjur sed -i -e '/authenticators:/a\  - authn-jwt/jenkins' /etc/conjur/config/conjur.yml
